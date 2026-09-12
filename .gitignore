@@ -1,0 +1,15 @@
+# 项目约束文件不上传
+项目约束.md
+
+# 常见不需要上传的文件
+node_modules/
+.env
+.env.local
+*.log
+.DS_Store
+.vscode/
+.idea/
+dist/
+build/
+*.pyc
+__pycache__/
