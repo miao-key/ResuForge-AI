@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { useResumeStore } from '@/store/resume';
 import { resumeApi } from '@/lib/api/client';
-import { withAuth } from '@/lib/auth';
+import { withAuth } from '@/components/auth/with-auth';
 import { formatDateTime } from '@/lib/utils';
 
 function DashboardPage() {

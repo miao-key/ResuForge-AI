@@ -1,22 +1,20 @@
-import { NextResponse } from 'next/server';
-import { clearAuthCookie } from '@/lib/auth/jwt';
+import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
-/**
- * 用户登出
- * POST /api/auth/logout
- */
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    await clearAuthCookie();
+    // Clear the auth token cookie
+    const cookieStore = await cookies();
+    cookieStore.delete('auth_token');
 
     return NextResponse.json({
       success: true,
       message: '登出成功',
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Logout error:', error);
     return NextResponse.json(
-      { success: false, error: '登出失败' },
+      { success: false, error: error.message || '登出失败' },
       { status: 500 }
     );
   }

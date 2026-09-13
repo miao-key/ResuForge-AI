@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-change-in-production'
 );
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+const deepseek = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: process.env.DEEPSEEK_API_BASE || 'https://api.deepseek.com/v1',
 });
 
 async function verifyToken(token: string) {
@@ -85,21 +86,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call Claude API
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1024,
+    // Call Deepseek API
+    const completion = await deepseek.chat.completions.create({
+      model: 'deepseek-chat',
       messages: [
         {
           role: 'user',
           content: optimizePrompts[type as keyof typeof optimizePrompts] + content,
         },
       ],
+      max_tokens: 1024,
+      temperature: 0.7,
     });
 
-    const optimizedContent = message.content[0].type === 'text' 
-      ? message.content[0].text 
-      : '';
+    const optimizedContent = completion.choices[0]?.message?.content || '';
 
     return NextResponse.json({
       success: true,

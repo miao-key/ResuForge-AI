@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/store/auth';
+import type { AuthResponse, Resume } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -34,6 +35,17 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
+        // 401 表示 Token 过期或无效，自动跳转到登录页
+        if (response.status === 401) {
+          const { logout } = useAuthStore.getState();
+          await logout();
+          
+          // 只在浏览器环境跳转
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login?expired=true';
+          }
+        }
+
         return {
           success: false,
           error: data.error || '请求失败',
@@ -77,20 +89,20 @@ export const api = new ApiClient();
 // Auth APIs
 export const authApi = {
   register: (data: { name: string; email: string; password: string }) =>
-    api.post('/api/auth/register', data),
+    api.post<AuthResponse>('/api/auth/register', data),
   login: (data: { email: string; password: string }) =>
-    api.post('/api/auth/login', data),
+    api.post<AuthResponse>('/api/auth/login', data),
 };
 
 // Resume APIs
 export const resumeApi = {
-  getAll: () => api.get('/api/resumes'),
-  getById: (id: string) => api.get(`/api/resumes/${id}`),
+  getAll: () => api.get<Resume[]>('/api/resumes'),
+  getById: (id: string) => api.get<Resume>(`/api/resumes/${id}`),
   create: (data: { title: string; content?: any }) =>
-    api.post('/api/resumes', data),
+    api.post<Resume>('/api/resumes', data),
   update: (id: string, data: { title?: string; content?: any }) =>
-    api.put(`/api/resumes/${id}`, data),
-  delete: (id: string) => api.delete(`/api/resumes/${id}`),
+    api.put<Resume>(`/api/resumes/${id}`, data),
+  delete: (id: string) => api.delete<void>(`/api/resumes/${id}`),
 };
 
 // AI APIs

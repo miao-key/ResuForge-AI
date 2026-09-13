@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useAuth } from '@/lib/auth';
-import { resumeAPI, aiAPI } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
+import { resumeApi, aiApi } from '@/lib/api/client';
 import { useResumeStore } from '@/store/resume';
 import { ResumeContent } from '@/types';
 import Link from 'next/link';
+import { withAuth } from '@/components/auth/with-auth';
 
-export default function EditorPage() {
+function EditorPage() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const { currentResume, setCurrentResume, addResume, updateResume } = useResumeStore();
   
   const [title, setTitle] = useState('未命名简历');
@@ -43,8 +44,8 @@ export default function EditorPage() {
 
   const loadResume = async () => {
     try {
-      const response = await resumeAPI.get(params.id as string);
-      if (response.success) {
+      const response = await resumeApi.getById(params.id as string);
+      if (response.success && response.data) {
         setCurrentResume(response.data);
         setTitle(response.data.title);
         setContent(typeof response.data.content === 'string' 
@@ -64,14 +65,14 @@ export default function EditorPage() {
       setSaving(true);
 
       if (isNewResume) {
-        const response = await resumeAPI.create(title, content);
-        if (response.success) {
+        const response = await resumeApi.create({ title, content });
+        if (response.success && response.data) {
           addResume(response.data);
           router.push(`/editor/${response.data.id}`);
         }
       } else {
-        const response = await resumeAPI.update(params.id as string, title, content);
-        if (response.success) {
+        const response = await resumeApi.update(params.id as string, { title, content });
+        if (response.success && response.data) {
           updateResume(params.id as string, response.data);
         }
       }
@@ -88,9 +89,9 @@ export default function EditorPage() {
       setOptimizing(true);
       setSelectedField(field);
 
-      const response = await aiAPI.optimize(fieldContent, type);
+      const response = await aiApi.optimize({ content: fieldContent, type });
       
-      if (response.success) {
+      if (response.success && response.data) {
         // Update the content with optimized text
         if (field === 'summary') {
           setContent(prev => ({
@@ -579,3 +580,5 @@ export default function EditorPage() {
     </div>
   );
 }
+
+export default withAuth(EditorPage);

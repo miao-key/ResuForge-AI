@@ -1,8 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 
-// 初始化 Anthropic 客户端
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+// 初始化 Deepseek 客户端
+const deepseek = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: process.env.DEEPSEEK_API_BASE || 'https://api.deepseek.com/v1',
 });
 
 export interface OptimizeOptions {
@@ -123,21 +124,20 @@ ${context ? `补充信息：${context}` : ''}
   };
 
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 2048,
+    const completion = await deepseek.chat.completions.create({
+      model: 'deepseek-chat',
       messages: [
         {
           role: 'user',
           content: prompts[type],
         },
       ],
+      max_tokens: 2048,
+      temperature: 0.7,
     });
 
     // 提取响应内容
-    const responseText = message.content[0].type === 'text' 
-      ? message.content[0].text 
-      : '';
+    const responseText = completion.choices[0]?.message?.content || '';
 
     // 解析 JSON 响应
     const result = JSON.parse(responseText);
@@ -179,20 +179,19 @@ ${JSON.stringify(resumeContent, null, 2)}
 }`;
 
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 2048,
+    const completion = await deepseek.chat.completions.create({
+      model: 'deepseek-chat',
       messages: [
         {
           role: 'user',
           content: prompt,
         },
       ],
+      max_tokens: 2048,
+      temperature: 0.7,
     });
 
-    const responseText = message.content[0].type === 'text' 
-      ? message.content[0].text 
-      : '';
+    const responseText = completion.choices[0]?.message?.content || '';
 
     const result = JSON.parse(responseText);
 

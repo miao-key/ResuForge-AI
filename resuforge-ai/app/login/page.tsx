@@ -1,26 +1,36 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { authApi } from '@/lib/api/client';
 import { useAuthStore } from '@/store/auth';
-import { withGuest } from '@/lib/auth';
+import { withGuest } from '@/components/auth/with-auth';
+import type { AuthResponse } from '@/types';
 
 const loginSchema = z.object({
-  email: z.string().email('请输入有效的邮箱地址'),
-  password: z.string().min(8, '密码至少需要 8 个字符'),
+  email: z.string().email({ message: '请输入有效的邮箱地址' }),
+  password: z.string().min(8, { message: '密码至少需要 8 个字符' }),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
 
 function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setAuth } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [expiredNotice, setExpiredNotice] = useState(false);
+
+  useEffect(() => {
+    // 检查是否因 Token 过期跳转而来
+    if (searchParams.get('expired') === 'true') {
+      setExpiredNotice(true);
+    }
+  }, [searchParams]);
 
   const {
     register,
@@ -37,13 +47,15 @@ function LoginPage() {
     const response = await authApi.login(data);
 
     if (response.success && response.data) {
-      setAuth(response.data.user, response.data.token);
-      router.push('/dashboard');
+      const authData = response.data as AuthResponse;
+      setAuth(authData.user, authData.token);
+      
+      // Force a full page reload to avoid hydration issues
+      window.location.href = '/dashboard';
     } else {
       setError(response.error || '登录失败，请重试');
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -56,6 +68,12 @@ function LoginPage() {
             </h1>
             <p className="text-slate-400">登录您的 ResuForge AI 账户</p>
           </div>
+
+          {expiredNotice && (
+            <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/50 rounded-lg text-amber-400 text-sm">
+              您的登录已过期，请重新登录
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">

@@ -20,12 +20,12 @@ export interface AuthResponse {
 // ==================== 简历相关类型 ====================
 export interface Resume {
   id: string;
-  userId: string;
+  user_id: string;
   title: string;
-  templateId: string;
-  content: ResumeContent;
-  createdAt: string;
-  updatedAt: string;
+  template_id?: string;
+  content: ResumeContent | string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ResumeContent {

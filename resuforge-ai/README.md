@@ -1,10 +1,10 @@
 # ResuForge AI
 
-一个基于 Next.js 和 Claude AI 的智能简历生成平台。
+一个基于 Next.js 的智能简历生成平台。
 
 ## 功能特性
 
-- 🤖 **AI 智能优化**：基于 Claude AI 的智能优化引擎，提升简历专业度
+- 🤖 **AI 智能优化**：基于 Deepseek AI 的智能优化引擎，自动提升简历专业度
 - ✨ **实时编辑**：直观的编辑器，实时预览，所见即所得
 - 📄 **多模板支持**：多种专业简历模板，适配不同行业和职位
 - 🔐 **安全认证**：基于 JWT 的用户认证系统
@@ -16,7 +16,7 @@
 - **UI 库**：React 19, TailwindCSS
 - **状态管理**：Zustand
 - **表单验证**：React Hook Form + Zod
-- **AI 引擎**：Claude API (Anthropic)
+- **AI 引擎**：Deepseek API
 - **数据库**：Supabase (PostgreSQL)
 - **认证**：JWT (jose)
 
@@ -37,8 +37,9 @@ npm install --legacy-peer-deps
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# Anthropic API 配置
-ANTHROPIC_API_KEY=your_anthropic_api_key
+# Deepseek API 配置
+DEEPSEEK_API_KEY=your_deepseek_api_key
+DEEPSEEK_API_BASE=https://api.deepseek.com/v1
 
 # JWT 密钥（生产环境请使用强密钥）
 JWT_SECRET=your_jwt_secret_key
