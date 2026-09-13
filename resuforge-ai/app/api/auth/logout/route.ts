@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { clearAuthCookie } from '@/lib/auth/jwt';
 
 export async function POST(request: NextRequest) {
   try {
     // Clear the auth token cookie
-    const cookieStore = await cookies();
-    cookieStore.delete('auth_token');
+    await clearAuthCookie();
 
     return NextResponse.json({
       success: true,

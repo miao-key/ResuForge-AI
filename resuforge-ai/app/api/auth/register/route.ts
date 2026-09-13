@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
-import { SignJWT } from 'jose';
 import { createClient } from '@/lib/db/supabase';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-secret-key-change-in-production'
-);
+import { signToken, setAuthCookie } from '@/lib/auth/jwt';
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,10 +50,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT token
-    const token = await new SignJWT({ userId: user.id, email: user.email })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('7d')
-      .sign(JWT_SECRET);
+    const token = await signToken({ userId: user.id, email: user.email });
+
+    // Set httpOnly cookie
+    await setAuthCookie(token);
 
     return NextResponse.json({
       success: true,
