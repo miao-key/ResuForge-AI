@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/store/auth';
+import { toast } from '@/components/ui/toast';
 import type { AuthResponse, Resume } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -8,6 +9,38 @@ interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   message?: string;
+}
+
+// 带重试的 fetch 封装
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries: number = 2
+): Promise<Response> {
+  let lastError: Error;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      
+      // 如果是服务器错误 (5xx)，重试
+      if (response.status >= 500 && attempt < maxRetries) {
+        // 指数退避等待
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 500));
+        continue;
+      }
+      
+      return response;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 500));
+      }
+    }
+  }
+  
+  throw lastError!;
 }
 
 class ApiClient {
@@ -24,7 +57,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      const response = await fetchWithRetry(`${API_URL}${endpoint}`, {
         ...options,
         headers: {
           ...this.getHeaders(),
@@ -45,18 +78,36 @@ class ApiClient {
             window.location.href = '/login?expired=true';
           }
         }
+        
+        // 429 请求过多
+        if (response.status === 429) {
+          toast.error('请求过于频繁，请稍后重试', 6000);
+          return {
+            success: false,
+            error: '请求过于频繁，请稍后重试',
+          };
+        }
 
         return {
           success: false,
-          error: data.error || '请求失败',
+          error: data.error || `请求失败 (${response.status})`,
         };
       }
 
       return data;
     } catch (error: any) {
+      // 网络错误
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        toast.error('网络连接失败，请检查网络');
+        return {
+          success: false,
+          error: '网络连接失败，请检查网络',
+        };
+      }
+      
       return {
         success: false,
-        error: error.message || '网络请求失败',
+        error: error.message || '网络请求失败，请稍后重试',
       };
     }
   }

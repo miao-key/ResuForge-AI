@@ -10,14 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { formatDateTime } from '@/lib/utils';
 import { useMounted } from '@/hooks/use-mounted';
+import { toast } from '@/components/ui/toast';
 
 function DashboardPage() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const { resumes, setResumes, deleteResume, setLoading, loading } = useResumeStore();
   const mounted = useMounted();
-
-  const [error, setError] = useState('');
 
   // 删除确认弹窗
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
@@ -31,14 +30,13 @@ function DashboardPage() {
 
   const loadResumes = async () => {
     setLoading(true);
-    setError('');
 
     const response = await resumeApi.getAll();
 
     if (response.success && response.data) {
       setResumes(response.data);
     } else {
-      setError(response.error || '加载简历列表失败');
+      toast.error(response.error || '加载简历列表失败');
     }
 
     setLoading(false);
@@ -65,8 +63,9 @@ function DashboardPage() {
 
     if (response.success) {
       deleteResume(deleteTarget.id);
+      toast.success('简历已删除');
     } else {
-      alert(response.error || '删除失败');
+      toast.error(response.error || '删除失败');
     }
 
     setIsDeleting(false);
@@ -75,6 +74,7 @@ function DashboardPage() {
 
   const handleLogout = () => {
     logout();
+    toast.info('已退出登录');
     router.push('/login');
   };
 
@@ -98,7 +98,7 @@ function DashboardPage() {
             </div>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-sm text-slate-300 hover:text-slate-50 border border-slate-700 hover:border-slate-600 rounded-lg transition"
+              className="px-4 py-2 text-sm text-slate-300 hover:text-slate-50 border border-slate-700 hover:border-slate-600 rounded-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
             >
               退出登录
             </button>
@@ -125,21 +125,15 @@ function DashboardPage() {
           </Button>
         </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400">
-            {error}
-          </div>
-        )}
-
         {loading ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12" role="status" aria-label="加载中">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-cyan-500 border-r-transparent" />
             <p className="text-slate-400 mt-4">加载中...</p>
           </div>
         ) : resumes.length === 0 ? (
           <div className="text-center py-16">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-800 mb-6">
-              <svg className="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
@@ -155,10 +149,11 @@ function DashboardPage() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="简历列表">
             {resumes.map((resume) => (
               <div
                 key={resume.id}
+                role="listitem"
                 className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:border-slate-600/50 transition-all duration-200 group flex flex-col"
               >
                 {/* 卡片头部 */}
@@ -203,13 +198,14 @@ function DashboardPage() {
                 <div className="flex items-center gap-2 mt-auto pt-4 border-t border-slate-700/50">
                   <button
                     onClick={() => handleEditResume(resume.id)}
-                    className="flex-1 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-sm font-medium rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 transition text-center"
+                    className="flex-1 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-sm font-medium rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
                   >
                     编辑
                   </button>
                   <button
                     onClick={() => handleDeleteClick(resume.id, resume.title)}
-                    className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-medium rounded-lg border border-red-500/30 hover:border-red-500/50 transition"
+                    className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-medium rounded-lg border border-red-500/30 hover:border-red-500/50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                    aria-label={`删除简历：${resume.title}`}
                   >
                     删除
                   </button>

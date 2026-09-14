@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog } from '@/components/ui/dialog';
+import { toast } from '@/components/ui/toast';
 import type { ResumeContent } from '@/types';
 import { ResumeRenderer } from '@/components/resume/ResumeRenderer';
 import { TemplateSelector } from '@/components/templates/TemplateSelector';
@@ -106,9 +107,12 @@ function EditorPage() {
             skills: [],
           }
         );
+      } else {
+        toast.error(result.error || '加载简历失败');
       }
     } catch (error) {
       console.error('Load resume error:', error);
+      toast.error('加载简历失败，请稍后重试');
     }
   };
 
@@ -183,9 +187,10 @@ function EditorPage() {
         orientation: 'portrait',
         pageNumbers: true,
       });
+      toast.success('PDF 导出成功！');
     } catch (error) {
       console.error('Export PDF error:', error);
-      alert('导出失败，请稍后重试');
+      toast.error('导出失败，请稍后重试');
     } finally {
       setIsExporting(false);
     }
@@ -197,9 +202,10 @@ function EditorPage() {
     try {
       const fileName = `${content.personalInfo?.name || 'Resume'}_简历.png`;
       await exportToImage('resume-preview', fileName);
+      toast.success('图片导出成功！');
     } catch (error) {
       console.error('Export image error:', error);
-      alert('导出图片失败，请稍后重试');
+      toast.error('导出图片失败，请稍后重试');
     } finally {
       setIsExporting(false);
     }
@@ -213,12 +219,14 @@ function EditorPage() {
   // --- 导出 JSON ---
   const handleExportJSON = () => {
     if (!currentResume) {
-      alert('请先保存简历后再导出 JSON');
+      toast.warning('请先保存简历后再导出 JSON');
       return;
     }
     const result = exportResumeAsJSON(currentResume);
     if (!result.success) {
-      alert(result.error || '导出失败');
+      toast.error(result.error || '导出失败');
+    } else {
+      toast.success('JSON 备份已下载');
     }
   };
 
@@ -230,7 +238,7 @@ function EditorPage() {
     index?: number
   ) => {
     if (!originalContent.trim()) {
-      alert('请先填写内容再进行优化');
+      toast.warning('请先填写内容再进行优化');
       return;
     }
 
@@ -296,7 +304,7 @@ function EditorPage() {
         // 请求被取消
       } else {
         setStreamContent('');
-        alert('AI 优化失败：' + (err.message || '请稍后重试'));
+        toast.error('AI 优化失败：' + (err.message || '请稍后重试'));
         setShowStreamModal(false);
       }
     }
@@ -421,7 +429,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
-        alert('技能推荐失败：' + (err.message || '请稍后重试'));
+        toast.error('技能推荐失败：' + (err.message || '请稍后重试'));
         setShowStreamModal(false);
       }
     }
@@ -471,7 +479,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
-        alert('简历分析失败：' + (err.message || '请稍后重试'));
+        toast.error('简历分析失败：' + (err.message || '请稍后重试'));
         setShowStreamModal(false);
       }
     }
@@ -1257,8 +1265,9 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
 
                         setContent({ ...content, skills: newSkills });
                         closeStreamModal();
+                        toast.success('技能已添加');
                       } catch {
-                        alert('技能解析失败，请手动复制内容');
+                        toast.error('技能解析失败，请手动复制内容');
                       }
                     }}
                     className="bg-cyan-500 hover:bg-cyan-600 text-slate-950"
