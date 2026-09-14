@@ -10,14 +10,17 @@ import {
 interface ResumeRendererProps {
   content: ResumeContent;
   templateId: string;
+  themeColor?: string;
 }
 
-export function ResumeRenderer({ content, templateId }: ResumeRendererProps) {
+export function ResumeRenderer({ content, templateId, themeColor }: ResumeRendererProps) {
+  const theme = themeColor || '#0891b2';
+
   switch (templateId) {
     case 'modern':
-      return <ModernTemplate content={content} />;
+      return <ModernTemplate content={content} themeColor={theme} />;
     case 'professional':
-      return <ProfessionalTemplate content={content} />;
+      return <ProfessionalTemplate content={content} themeColor={theme} />;
     case 'creative':
       return <CreativeTemplate content={content} />;
     case 'minimal':

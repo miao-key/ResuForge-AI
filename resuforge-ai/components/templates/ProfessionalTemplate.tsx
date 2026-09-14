@@ -3,13 +3,14 @@ import { ResumeContent } from '@/types';
 
 interface ProfessionalTemplateProps {
   content: ResumeContent;
+  themeColor?: string;
 }
 
-export const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ content }) => {
+export const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ content, themeColor = '#0f172a' }) => {
   return (
     <div className="bg-white text-slate-900 p-10" style={{ minHeight: '1056px', width: '816px' }}>
       {/* Header */}
-      <div className="mb-6 pb-5 border-b-4 border-slate-800">
+      <div className="mb-6 pb-5 border-b-4" style={{ borderBottomColor: themeColor }}>
         <h1 className="text-5xl font-bold mb-2 text-slate-900">
           {content.personalInfo?.name || '姓名'}
         </h1>

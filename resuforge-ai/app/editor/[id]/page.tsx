@@ -12,7 +12,7 @@ import { Dialog } from '@/components/ui/dialog';
 import type { ResumeContent } from '@/types';
 import { ResumeRenderer } from '@/components/resume/ResumeRenderer';
 import { TemplateSelector } from '@/components/templates/TemplateSelector';
-import { exportToPDF, generatePDFFileName } from '@/lib/pdf/export';
+import { exportToPDF, generatePDFFileName, exportToImage } from '@/lib/pdf/export';
 import { exportResumeAsJSON } from '@/lib/utils/export';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { AutoSaveIndicator } from '@/components/resume/AutoSaveIndicator';
@@ -21,6 +21,7 @@ import { WorkExperienceItem } from '@/components/resume/WorkExperienceItem';
 import { EducationItem } from '@/components/resume/EducationItem';
 import { ProjectItem } from '@/components/resume/ProjectItem';
 import { SkillItem } from '@/components/resume/SkillItem';
+import { PreviewControls } from '@/components/resume/PreviewControls';
 import { useMounted } from '@/hooks/use-mounted';
 
 function EditorPage() {
@@ -58,6 +59,11 @@ function EditorPage() {
   // --- 分析结果状态 ---
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+
+  // --- 预览控制状态 ---
+  const [previewScale, setPreviewScale] = useState(1);
+  const [themeColor, setThemeColor] = useState('#0891b2');
+  const [showExportOptions, setShowExportOptions] = useState(false);
 
   // --- 删除确认弹窗 ---
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -171,13 +177,37 @@ function EditorPage() {
     setIsExporting(true);
     try {
       const fileName = generatePDFFileName(content);
-      await exportToPDF('resume-preview', fileName);
+      await exportToPDF('resume-preview', fileName, {
+        quality: 2,
+        format: 'a4',
+        orientation: 'portrait',
+        pageNumbers: true,
+      });
     } catch (error) {
       console.error('Export PDF error:', error);
       alert('导出失败，请稍后重试');
     } finally {
       setIsExporting(false);
     }
+  };
+
+  // --- 导出图片 ---
+  const handleExportImage = async () => {
+    setIsExporting(true);
+    try {
+      const fileName = `${content.personalInfo?.name || 'Resume'}_简历.png`;
+      await exportToImage('resume-preview', fileName);
+    } catch (error) {
+      console.error('Export image error:', error);
+      alert('导出图片失败，请稍后重试');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // --- 打印 ---
+  const handlePrint = () => {
+    window.print();
   };
 
   // --- 导出 JSON ---
@@ -542,15 +572,62 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
               📄 JSON
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportPDF}
-              disabled={isExporting}
-              className="border-slate-700 hover:bg-slate-800"
-            >
-              {isExporting ? '导出中...' : '📥 PDF'}
-            </Button>
+            {/* 导出选项菜单 */}
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowExportOptions(!showExportOptions)}
+                disabled={isExporting}
+                className="border-slate-700 hover:bg-slate-800"
+              >
+                {isExporting ? '导出中...' : '📥 导出'} ▾
+              </Button>
+
+              {showExportOptions && (
+                <>
+                  {/* Backdrop */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowExportOptions(false)}
+                  />
+                  {/* Dropdown */}
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50 p-2">
+                    <button
+                      onClick={() => {
+                        handleExportPDF();
+                        setShowExportOptions(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded hover:bg-slate-800 flex items-center gap-2 text-sm text-slate-200"
+                    >
+                      <span>📥</span>
+                      <span>导出 PDF (A4)</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleExportImage();
+                        setShowExportOptions(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded hover:bg-slate-800 flex items-center gap-2 text-sm text-slate-200"
+                    >
+                      <span>🖼️</span>
+                      <span>导出 PNG 图片</span>
+                    </button>
+                    <div className="border-t border-slate-700 my-1" />
+                    <button
+                      onClick={() => {
+                        handlePrint();
+                        setShowExportOptions(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded hover:bg-slate-800 flex items-center gap-2 text-sm text-slate-200"
+                    >
+                      <span>🖨️</span>
+                      <span>打印</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
 
             <Button
               onClick={handleSave}
@@ -892,9 +969,34 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
               activeTab === 'edit' ? 'hidden lg:block' : 'block'
             }`}
           >
-            <h3 className="text-lg font-semibold text-slate-50 mb-6">实时预览</h3>
-            <div id="resume-preview" className="bg-white rounded-lg">
-              <ResumeRenderer content={content} templateId={templateId} />
+            <h3 className="text-lg font-semibold text-slate-50 mb-4">实时预览</h3>
+
+            {/* 预览控制面板 */}
+            <PreviewControls
+              scale={previewScale}
+              onScaleChange={setPreviewScale}
+              themeColor={themeColor}
+              onThemeColorChange={setThemeColor}
+              onPrint={handlePrint}
+            />
+
+            {/* 预览内容 */}
+            <div className="overflow-auto bg-slate-800/30 rounded-lg p-4 flex justify-center">
+              <div
+                style={{
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: 'top center',
+                  transition: 'transform 0.2s ease',
+                }}
+              >
+                <div id="resume-preview" className="bg-white rounded-lg shadow-2xl">
+                  <ResumeRenderer
+                    content={content}
+                    templateId={templateId}
+                    themeColor={themeColor}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
