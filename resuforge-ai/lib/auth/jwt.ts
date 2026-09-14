@@ -29,7 +29,8 @@ export async function signToken(payload: JWTPayload): Promise<string> {
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as JWTPayload;
+    // jose 的 JWTPayload 是任意 JSON,通过 unknown 转换到我们的强类型接口
+    return payload as unknown as JWTPayload;
   } catch (error) {
     console.error('Token verification failed:', error);
     return null;

@@ -7,21 +7,11 @@ import { Button } from '@/components/ui/button';
 
 export function Header() {
   const router = useRouter();
-  const { user, clearAuth } = useAuthStore();
+  const { user, logout } = useAuthStore();
 
   const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        clearAuth();
-        router.push('/login');
-      }
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+    await logout();
+    router.push('/login');
   };
 
   return (

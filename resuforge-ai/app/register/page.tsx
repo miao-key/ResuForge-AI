@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
-import { withGuest } from '@/lib/auth';
+import { withGuest } from '@/components/auth/with-auth';
 import { validateEmail, validatePassword } from '@/lib/utils';
+import type { AuthResponse } from '@/types';
 import Link from 'next/link';
 
 function RegisterPage() {
   const router = useRouter();
-  const { login } = useAuthStore();
+  const { setAuth } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -85,7 +86,8 @@ function RegisterPage() {
 
       if (result.success && result.data) {
         // 注册成功，自动登录
-        login(result.data.user, result.data.token);
+        const authData = result.data as AuthResponse;
+        setAuth(authData.user, authData.token);
         router.push('/dashboard');
       } else {
         setErrors({

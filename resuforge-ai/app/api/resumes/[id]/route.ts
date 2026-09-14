@@ -17,7 +17,7 @@ async function verifyToken(token: string) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -40,13 +40,14 @@ export async function GET(
     }
 
     const supabase = createClient();
+    const { id } = await params;
 
     // Get resume
     const { data: resume, error } = await supabase
       .from('resumes')
       .select('*')
-      .eq('id', params.id)
-      .eq('user_id', payload.userId)
+      .eq('id', id)
+      .eq('user_id', payload.userId as string)
       .single();
 
     if (error || !resume) {
@@ -71,7 +72,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -93,21 +94,29 @@ export async function PUT(
       );
     }
 
+    const { id } = await params;
     const body = await request.json();
-    const { title, content } = body;
+    const { title, template_id, content } = body;
 
     const supabase = createClient();
 
     // Update resume
+    const updateData: any = {
+      title,
+      content: JSON.stringify(content || {}),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Only update template_id if provided
+    if (template_id !== undefined) {
+      updateData.template_id = template_id;
+    }
+
     const { data: resume, error } = await supabase
       .from('resumes')
-      .update({
-        title,
-        content: JSON.stringify(content || {}),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', params.id)
-      .eq('user_id', payload.userId)
+      .update(updateData)
+      .eq('id', id)
+      .eq('user_id', payload.userId as string)
       .select('*')
       .single();
 
@@ -133,7 +142,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -155,14 +164,15 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
     const supabase = createClient();
 
     // Delete resume
     const { error } = await supabase
       .from('resumes')
       .delete()
-      .eq('id', params.id)
-      .eq('user_id', payload.userId);
+      .eq('id', id)
+      .eq('user_id', payload.userId as string);
 
     if (error) {
       throw error;
