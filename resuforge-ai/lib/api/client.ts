@@ -107,6 +107,6 @@ export const resumeApi = {
 
 // AI APIs
 export const aiApi = {
-  optimize: (data: { content: string; type: 'summary' | 'experience' | 'project' }) =>
+  optimize: (data: { content: string; type: 'summary' | 'experience' | 'project' | 'education' | 'skills' | 'analyze' }) =>
     api.post('/api/ai/optimize', data),
 };

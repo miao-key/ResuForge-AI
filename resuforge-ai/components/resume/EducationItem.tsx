@@ -17,22 +17,53 @@ interface EducationItemProps {
   };
   onChange: (edu: any) => void;
   onDelete: () => void;
+  onOptimize?: () => void;
+  isOptimizing?: boolean;
 }
 
-export function EducationItem({ education, onChange, onDelete }: EducationItemProps) {
+export function EducationItem({ 
+  education, 
+  onChange, 
+  onDelete,
+  onOptimize,
+  isOptimizing,
+}: EducationItemProps) {
+  const canOptimize = education.school || education.degree || education.major;
+
   return (
     <div className="border border-slate-700 rounded-lg p-4 space-y-3">
       <div className="flex items-start justify-between">
         <Label className="text-slate-300">学校名称</Label>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onDelete}
-          className="h-6 w-6 p-0 text-slate-500 hover:text-red-400"
-          title="删除此教育经历"
-        >
-          ×
-        </Button>
+        <div className="flex items-center gap-2">
+          {onOptimize && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onOptimize}
+              disabled={isOptimizing || !canOptimize}
+              className="h-6 px-2 text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30"
+              title="AI 优化"
+            >
+              {isOptimizing ? (
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-3 w-3 animate-spin rounded-full border border-cyan-400 border-r-transparent" />
+                  优化中
+                </span>
+              ) : (
+                '✨ AI 优化'
+              )}
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onDelete}
+            className="h-6 w-6 p-0 text-slate-500 hover:text-red-400"
+            title="删除此教育经历"
+          >
+            ×
+          </Button>
+        </div>
       </div>
       <Input
         value={education.school}

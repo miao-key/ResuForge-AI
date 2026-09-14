@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useResumeStore } from '@/store/resume';
 import { withAuth } from '@/components/auth/with-auth';
@@ -47,6 +47,17 @@ function EditorPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
+
+  // --- 流式输出状态 ---
+  const [streamContent, setStreamContent] = useState('');
+  const [streamType, setStreamType] = useState<string | null>(null);
+  const [streamIndex, setStreamIndex] = useState<number | undefined>(undefined);
+  const [showStreamModal, setShowStreamModal] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // --- 分析结果状态 ---
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   // --- 删除确认弹窗 ---
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -181,7 +192,7 @@ function EditorPage() {
     }
   };
 
-  // --- AI 优化 ---
+  // --- AI 优化 (流式输出) ---
   const handleOptimize = async (
     type: string,
     originalContent: string,
@@ -193,43 +204,246 @@ function EditorPage() {
       return;
     }
 
-    const fieldKey = field || type;
-    setIsOptimizing(fieldKey);
+    // 打开流式输出弹窗
+    setStreamType(type);
+    setStreamIndex(index);
+    setStreamContent('');
+    setShowStreamModal(true);
+
+    // 创建 AbortController
+    abortControllerRef.current = new AbortController();
 
     try {
-      const response = await fetch('/api/ai/optimize', {
+      const response = await fetch('/api/ai/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: originalContent, type }),
+        signal: abortControllerRef.current.signal,
       });
 
-      const result = await response.json();
-
-      if (result.success && result.data?.optimized) {
-        const optimized = result.data.optimized;
-
-        if (type === 'summary') {
-          setContent({
-            ...content,
-            personalInfo: { ...content.personalInfo, summary: optimized },
-          });
-        } else if (type === 'experience' && index !== undefined) {
-          const newExperiences = [...content.workExperience];
-          newExperiences[index] = { ...newExperiences[index], description: optimized };
-          setContent({ ...content, workExperience: newExperiences });
-        } else if (type === 'project' && index !== undefined) {
-          const newProjects = [...content.projects];
-          newProjects[index] = { ...newProjects[index], description: optimized };
-          setContent({ ...content, projects: newProjects });
-        }
-      } else {
-        alert(result.error || 'AI 优化失败');
+      if (!response.ok) {
+        throw new Error('请求失败');
       }
-    } catch (error) {
-      console.error('Optimize error:', error);
-      alert('AI 优化失败，请稍后重试');
-    } finally {
-      setIsOptimizing(null);
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('无法读取响应流');
+      }
+
+      const decoder = new TextDecoder();
+      let fullContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        
+        // 解析 SSE 数据
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.type === 'chunk') {
+                fullContent = data.fullContent;
+                setStreamContent(fullContent);
+              } else if (data.type === 'done') {
+                // 流式输出完成，但不在这里更新内容
+                // 用户需要在弹窗中点击"应用"来确认
+              } else if (data.type === 'error') {
+                throw new Error(data.error);
+              }
+            } catch {
+              // 忽略解析错误
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        // 请求被取消
+      } else {
+        setStreamContent('');
+        alert('AI 优化失败：' + (err.message || '请稍后重试'));
+        setShowStreamModal(false);
+      }
+    }
+  };
+
+  // --- 应用流式输出结果 ---
+  const applyStreamResult = () => {
+    if (!streamContent || !streamType) return;
+
+    if (streamType === 'summary') {
+      setContent({
+        ...content,
+        personalInfo: { ...content.personalInfo, summary: streamContent },
+      });
+    } else if (streamType === 'experience' && streamIndex !== undefined) {
+      const newExperiences = [...content.workExperience];
+      newExperiences[streamIndex] = { ...newExperiences[streamIndex], description: streamContent };
+      setContent({ ...content, workExperience: newExperiences });
+    } else if (streamType === 'project' && streamIndex !== undefined) {
+      const newProjects = [...content.projects];
+      newProjects[streamIndex] = { ...newProjects[streamIndex], description: streamContent };
+      setContent({ ...content, projects: newProjects });
+    } else if (streamType === 'education' && streamIndex !== undefined) {
+      // 尝试解析教育信息
+      try {
+        const lines = streamContent.split('\n').filter((l: string) => l.trim());
+        const newEducation = [...content.education];
+        lines.forEach((line: string) => {
+          if (line.includes('学校') || line.includes('大学') || line.includes('学院')) {
+            newEducation[streamIndex] = { ...newEducation[streamIndex], school: line.replace(/[学校大学学院：:]/g, '').trim() };
+          }
+          if (line.includes('学历') || line.includes('学位')) {
+            newEducation[streamIndex] = { ...newEducation[streamIndex], degree: line.replace(/[学历学位：:]/g, '').trim() };
+          }
+          if (line.includes('专业')) {
+            newEducation[streamIndex] = { ...newEducation[streamIndex], major: line.replace(/[专业：:]/g, '').trim() };
+          }
+        });
+        setContent({ ...content, education: newEducation });
+      } catch {
+        // 解析失败，忽略
+      }
+    } else if (streamType === 'analyze') {
+      // 简历分析单独处理
+      try {
+        const analysis = JSON.parse(streamContent);
+        setAnalysisResult(analysis);
+        setShowAnalysis(true);
+        setShowStreamModal(false);
+        return; // 分析不关闭流式弹窗，由分析弹窗管理
+      } catch {
+        // 无法解析 JSON，显示原始文本
+        setAnalysisResult({ rawText: streamContent });
+        setShowAnalysis(true);
+        setShowStreamModal(false);
+        return;
+      }
+    }
+
+    setShowStreamModal(false);
+  };
+
+  // --- 关闭流式弹窗 ---
+  const closeStreamModal = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setShowStreamModal(false);
+    setStreamContent('');
+  };
+
+  // --- 技能推荐 (流式输出) ---
+  const handleRecommendSkills = async () => {
+    // 构建简历上下文
+    const resumeContext = `
+目标岗位：${content.personalInfo.summary?.includes('前端') ? '前端开发工程师' : '全栈开发工程师'}
+现有技能：
+${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
+工作经历：${content.workExperience.map(e => e.description).join('\n')}
+项目经历：${content.projects.map(p => p.description).join('\n')}
+`;
+
+    // 打开流式弹窗
+    setStreamType('skills');
+    setStreamIndex(undefined);
+    setStreamContent('');
+    setShowStreamModal(true);
+
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const response = await fetch('/api/ai/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: resumeContext, type: 'skills' }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) throw new Error('请求失败');
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('无法读取响应流');
+
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.type === 'chunk') {
+                setStreamContent(data.fullContent);
+              }
+            } catch {}
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        alert('技能推荐失败：' + (err.message || '请稍后重试'));
+        setShowStreamModal(false);
+      }
+    }
+  };
+
+  // --- 简历分析 (流式输出) ---
+  const handleAnalyzeResume = async () => {
+    // 打开流式弹窗
+    setStreamType('analyze');
+    setStreamIndex(undefined);
+    setStreamContent('');
+    setShowStreamModal(true);
+
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const response = await fetch('/api/ai/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: JSON.stringify(content, null, 2), type: 'analyze' }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) throw new Error('请求失败');
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('无法读取响应流');
+
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.type === 'chunk') {
+                setStreamContent(data.fullContent);
+              }
+            } catch {}
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        alert('简历分析失败：' + (err.message || '请稍后重试'));
+        setShowStreamModal(false);
+      }
     }
   };
 
@@ -516,6 +730,11 @@ function EditorPage() {
                     onDelete={() =>
                       setDeleteDialog({ type: 'education', id: edu.id, label: edu.school || '此教育经历' })
                     }
+                    onOptimize={() => {
+                      const eduText = `${edu.school} ${edu.degree} ${edu.major} ${edu.gpa || ''}`;
+                      handleOptimize('education', eduText, `edu_${index}`, index);
+                    }}
+                    isOptimizing={isOptimizing === `edu_${index}`}
                   />
                 ))}
                 <Button
@@ -609,22 +828,60 @@ function EditorPage() {
                     }
                   />
                 ))}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-slate-700 hover:bg-slate-800 w-full"
-                  onClick={() =>
-                    setContent({
-                      ...content,
-                      skills: [
-                        ...content.skills,
-                        { id: `skill_${Date.now()}`, category: '', items: [] },
-                      ],
-                    })
-                  }
-                >
-                  + 添加技能分类
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-slate-700 hover:bg-slate-800 w-full"
+                    onClick={() =>
+                      setContent({
+                        ...content,
+                        skills: [
+                          ...content.skills,
+                          { id: `skill_${Date.now()}`, category: '', items: [] },
+                        ],
+                      })
+                    }
+                  >
+                    + 添加技能分类
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRecommendSkills}
+                    disabled={isOptimizing === 'skills'}
+                    className="border-cyan-700 hover:bg-cyan-950/30 text-cyan-400 whitespace-nowrap"
+                    title="基于简历内容推荐技能"
+                  >
+                    {isOptimizing === 'skills' ? (
+                      <span className="flex items-center gap-1">
+                        <span className="inline-block h-3 w-3 animate-spin rounded-full border border-cyan-400 border-r-transparent" />
+                        推荐中
+                      </span>
+                    ) : (
+                      '✨ AI 推荐技能'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </EditorSection>
+
+            {/* 简历分析 */}
+            <EditorSection 
+              title="简历分析" 
+              onOptimize={handleAnalyzeResume}
+              isOptimizing={isOptimizing === 'analyze'}
+              optimizeDisabled={!content.personalInfo.name}
+            >
+              <div className="text-slate-400 text-sm">
+                <p>基于简历内容，AI 将分析：</p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>内容完整度评分</li>
+                  <li>描述质量评估</li>
+                  <li>量化成果分析</li>
+                  <li>关键词匹配度</li>
+                </ul>
+                <p className="mt-3 text-slate-500">点击右上角"AI 分析"按钮开始分析</p>
               </div>
             </EditorSection>
           </div>
@@ -654,6 +911,307 @@ function EditorPage() {
         onConfirm={confirmDelete}
         confirmVariant="destructive"
       />
+
+      {/* 简历分析结果弹窗 */}
+      <Dialog
+        open={showAnalysis}
+        onClose={() => setShowAnalysis(false)}
+        title="📊 简历分析报告"
+        description=""
+        confirmText="关闭"
+        cancelText=""
+        onConfirm={() => setShowAnalysis(false)}
+      >
+        {analysisResult && (
+          <div className="space-y-4 py-4">
+            {/* 评分概览 */}
+            {analysisResult.overall && (
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 mb-2">
+                  <span className="text-3xl font-bold text-white">{analysisResult.overall}</span>
+                </div>
+                <p className="text-slate-400 text-sm">综合评分</p>
+              </div>
+            )}
+
+            {/* 分项评分 */}
+            {(analysisResult.completeness || analysisResult.quality) && (
+              <div className="space-y-3">
+                {analysisResult.completeness && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-300 w-28">内容完整度</span>
+                    <div className="flex-1 bg-slate-700 rounded-full h-2">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full transition-all"
+                        style={{ width: `${analysisResult.completeness}%` }}
+                      />
+                    </div>
+                    <span className="text-sm text-slate-400 w-10">{analysisResult.completeness}</span>
+                  </div>
+                )}
+                {analysisResult.quality && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-300 w-28">描述质量</span>
+                    <div className="flex-1 bg-slate-700 rounded-full h-2">
+                      <div 
+                        className="bg-blue-500 h-2 rounded-full transition-all"
+                        style={{ width: `${analysisResult.quality}%` }}
+                      />
+                    </div>
+                    <span className="text-sm text-slate-400 w-10">{analysisResult.quality}</span>
+                  </div>
+                )}
+                {analysisResult.quantification && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-300 w-28">量化成果</span>
+                    <div className="flex-1 bg-slate-700 rounded-full h-2">
+                      <div 
+                        className="bg-purple-500 h-2 rounded-full transition-all"
+                        style={{ width: `${analysisResult.quantification}%` }}
+                      />
+                    </div>
+                    <span className="text-sm text-slate-400 w-10">{analysisResult.quantification}</span>
+                  </div>
+                )}
+                {analysisResult.formatting && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-300 w-28">格式规范</span>
+                    <div className="flex-1 bg-slate-700 rounded-full h-2">
+                      <div 
+                        className="bg-cyan-500 h-2 rounded-full transition-all"
+                        style={{ width: `${analysisResult.formatting}%` }}
+                      />
+                    </div>
+                    <span className="text-sm text-slate-400 w-10">{analysisResult.formatting}</span>
+                  </div>
+                )}
+                {analysisResult.keywords && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-300 w-28">关键词匹配</span>
+                    <div className="flex-1 bg-slate-700 rounded-full h-2">
+                      <div 
+                        className="bg-amber-500 h-2 rounded-full transition-all"
+                        style={{ width: `${analysisResult.keywords}%` }}
+                      />
+                    </div>
+                    <span className="text-sm text-slate-400 w-10">{analysisResult.keywords}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 亮点 */}
+            {analysisResult.strengths && analysisResult.strengths.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-green-400 mb-2 flex items-center gap-2">
+                  <span>✨</span> 简历亮点
+                </h4>
+                <ul className="space-y-1">
+                  {analysisResult.strengths.map((s: string, i: number) => (
+                    <li key={i} className="text-sm text-slate-300 pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-green-500 before:rounded-full">
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 改进建议 */}
+            {analysisResult.improvements && analysisResult.improvements.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-amber-400 mb-2 flex items-center gap-2">
+                  <span>💡</span> 改进建议
+                </h4>
+                <ul className="space-y-1">
+                  {analysisResult.improvements.map((item: string, i: number) => (
+                    <li key={i} className="text-sm text-slate-300 pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-amber-500 before:rounded-full">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 原始文本（如果无法解析） */}
+            {analysisResult.rawText && (
+              <div className="mt-4 p-3 bg-slate-800 rounded-lg">
+                <h4 className="text-xs text-slate-400 mb-2">AI 原始反馈：</h4>
+                <p className="text-sm text-slate-300 whitespace-pre-wrap">{analysisResult.rawText}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Dialog>
+
+      {/* AI 流式输出弹窗 */}
+      <Dialog
+        open={showStreamModal}
+        onClose={closeStreamModal}
+        title={
+          streamType === 'summary' ? '✨ 优化个人简介' :
+          streamType === 'experience' ? '✨ 优化工作经历' :
+          streamType === 'project' ? '✨ 优化项目经历' :
+          streamType === 'education' ? '✨ 优化教育经历' :
+          streamType === 'skills' ? '✨ 推荐技能关键词' :
+          streamType === 'analyze' ? '📊 分析简历' :
+          '✨ AI 生成中'
+        }
+        description=""
+        confirmText=""
+        cancelText=""
+        className="max-w-2xl"
+      >
+        <div className="space-y-4 py-2">
+          {/* 流式输出区域 */}
+          <div className="min-h-[150px] max-h-[400px] overflow-y-auto bg-slate-950/50 rounded-lg p-4 border border-slate-700">
+            <div className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">
+              {streamContent || (
+                <span className="text-slate-500 italic flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-cyan-400" />
+                  AI 正在思考...
+                </span>
+              )}
+              {showStreamModal && streamContent !== '' && (
+                <span className="inline-block w-2 h-4 bg-cyan-400 ml-0.5 animate-pulse" />
+              )}
+            </div>
+          </div>
+
+          {/* 状态指示 */}
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <span className={`relative flex h-2 w-2`}>
+                {showStreamModal && !streamContent ? (
+                  <>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
+                  </>
+                ) : (
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                )}
+              </span>
+              <span className="text-slate-400">
+                {showStreamModal && !streamContent ? '生成中...' : streamContent ? '生成完成' : '等待中'}
+              </span>
+            </div>
+            {streamContent && (
+              <span className="text-slate-500">{streamContent.length} 字符</span>
+            )}
+          </div>
+
+          {/* 操作按钮 */}
+          {streamContent && (
+            <div className="flex items-center gap-3 pt-3 border-t border-slate-700">
+              {streamType !== 'skills' && streamType !== 'analyze' ? (
+                <>
+                  <Button
+                    size="sm"
+                    onClick={applyStreamResult}
+                    className="bg-cyan-500 hover:bg-cyan-600 text-slate-950"
+                  >
+                    ✓ 应用建议
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      // 重新生成 - 关闭弹窗，让用户重新点击
+                      closeStreamModal();
+                    }}
+                    className="border-slate-700 hover:bg-slate-800"
+                  >
+                    🔄 重新生成
+                  </Button>
+                </>
+              ) : streamType === 'skills' ? (
+                <>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      // 应用技能推荐
+                      try {
+                        const lines = streamContent.split('\n').filter((l: string) => l.trim());
+                        const newSkills = [...content.skills];
+                        
+                        lines.forEach((line: string) => {
+                          const cleanLine = line.replace(/^[-\d.、]\s*/, '').trim();
+                          if ((cleanLine.includes('：') || cleanLine.includes(':')) && !cleanLine.startsWith('#')) {
+                            const [category, items] = cleanLine.split(/[：:]/);
+                            const skillItems = items.split(/[,，、]/).map((t: string) => t.trim()).filter(Boolean);
+                            const existingIndex = newSkills.findIndex(s => 
+                              s.category.toLowerCase().includes(category.trim().toLowerCase())
+                            );
+                            if (existingIndex >= 0) {
+                              newSkills[existingIndex].items = [...new Set([...newSkills[existingIndex].items, ...skillItems])];
+                            } else {
+                              newSkills.push({
+                                id: `skill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                                category: category.trim(),
+                                items: skillItems,
+                              });
+                            }
+                          }
+                        });
+
+                        setContent({ ...content, skills: newSkills });
+                        closeStreamModal();
+                      } catch {
+                        alert('技能解析失败，请手动复制内容');
+                      }
+                    }}
+                    className="bg-cyan-500 hover:bg-cyan-600 text-slate-950"
+                  >
+                    ✓ 添加技能
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={closeStreamModal}
+                    className="border-slate-700 hover:bg-slate-800"
+                  >
+                    取消
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      // 简历分析 - 解析并显示分析报告
+                      try {
+                        let analysis = null;
+                        // 尝试提取 JSON
+                        const jsonMatch = streamContent.match(/```(?:json)?\s*([\s\S]*?)```/);
+                        if (jsonMatch) {
+                          analysis = JSON.parse(jsonMatch[1].trim());
+                        } else {
+                          analysis = JSON.parse(streamContent);
+                        }
+                        setAnalysisResult(analysis);
+                      } catch {
+                        setAnalysisResult({ rawText: streamContent });
+                      }
+                      setShowAnalysis(true);
+                      closeStreamModal();
+                    }}
+                    className="bg-cyan-500 hover:bg-cyan-600 text-slate-950"
+                  >
+                    ✓ 查看分析报告
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={closeStreamModal}
+                    className="border-slate-700 hover:bg-slate-800"
+                  >
+                    取消
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </Dialog>
     </div>
   );
 }

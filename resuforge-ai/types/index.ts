@@ -95,7 +95,7 @@ export interface Template {
 // ==================== AI 相关类型 ====================
 export interface AIOptimizeRequest {
   content: string;
-  type: 'work_experience' | 'project' | 'summary' | 'full_resume';
+  type: 'work_experience' | 'project' | 'summary' | 'education' | 'skills' | 'analyze';
   context?: {
     targetRole?: string;
     targetIndustry?: string;
@@ -105,6 +105,22 @@ export interface AIOptimizeRequest {
 export interface AIOptimizeResponse {
   optimizedContent: string;
   suggestions: string[];
+  type: string;
+}
+
+export interface AIAnalysisResponse {
+  type: 'analyze';
+  analysis: {
+    completeness?: number;
+    quality?: number;
+    quantification?: number;
+    formatting?: number;
+    keywords?: number;
+    overall?: number;
+    strengths?: string[];
+    improvements?: string[];
+    rawText?: string;
+  };
 }
 
 // ==================== API 响应类型 ====================

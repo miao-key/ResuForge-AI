@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, content } = body;
+    const { title, template_id, content } = body;
 
     if (!title) {
       return NextResponse.json(
@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: payload.userId as string,
         title,
+        template_id: template_id || 'classic',
         content: JSON.stringify(content || {}),
       })
       .select('*')

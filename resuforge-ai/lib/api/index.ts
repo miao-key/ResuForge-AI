@@ -13,9 +13,9 @@ export async function fetchAPI(
   const { requireAuth = false, ...fetchOptions } = options;
   const token = useAuthStore.getState().token;
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...fetchOptions.headers,
+    ...(fetchOptions.headers as Record<string, string> | undefined),
   };
 
   if (requireAuth && token) {
@@ -86,7 +86,7 @@ export const resumeAPI = {
 
 // AI APIs
 export const aiAPI = {
-  optimize: (content: string, type: 'summary' | 'experience' | 'project') =>
+  optimize: (content: string, type: 'summary' | 'experience' | 'project' | 'education' | 'skills' | 'analyze') =>
     fetchAPI('/api/ai/optimize', {
       method: 'POST',
       requireAuth: true,

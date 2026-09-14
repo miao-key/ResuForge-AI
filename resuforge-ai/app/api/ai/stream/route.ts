@@ -22,7 +22,6 @@ async function verifyToken(token: string) {
 
 // Prompt 模板库
 const optimizePrompts = {
-  // 个人简介优化
   summary: `你是一位专业的简历优化顾问。请优化以下个人简介，使其更专业、更有吸引力。要求：
 - 突出核心技能和优势
 - 使用动作动词
@@ -32,7 +31,6 @@ const optimizePrompts = {
 
 待优化内容：`,
 
-  // 工作经历优化
   experience: `你是一位专业的简历优化顾问。请优化以下工作经历描述，使其更专业、更有影响力。要求：
 - 使用 STAR 原则（情境、任务、行动、结果）
 - 量化成果（使用数字、百分比等）
@@ -43,7 +41,6 @@ const optimizePrompts = {
 
 待优化内容：`,
 
-  // 项目经历优化
   project: `你是一位专业的简历优化顾问。请优化以下项目经历描述，使其更专业、更突出亮点。要求：
 - 清晰说明项目背景和目标
 - 突出技术难点和解决方案
@@ -54,7 +51,6 @@ const optimizePrompts = {
 
 待优化内容：`,
 
-  // 教育经历优化
   education: `你是一位专业的简历优化顾问。请优化以下教育经历描述，使其更专业。要求：
 - 突出相关课程和成绩
 - 添加 GPA 或排名（如有亮点）
@@ -64,7 +60,6 @@ const optimizePrompts = {
 
 待优化内容：`,
 
-  // 技能关键词推荐
   skills: `你是一位专业的简历优化顾问。基于以下简历内容和目标岗位，推荐相关的技能关键词。要求：
 - 分类列出（如：编程语言、框架、工具、方法论等）
 - 每类 3-5 个核心技能
@@ -73,7 +68,6 @@ const optimizePrompts = {
 
 简历内容：`,
 
-  // 简历评分与建议
   analyze: `你是一位专业的简历分析师。请对以下简历进行全面分析，给出评分和改进建议。要求：
 - 从以下维度评分（每项 1-100 分）：
   1. 内容完整性（是否包含所有必要模块）
@@ -87,6 +81,10 @@ const optimizePrompts = {
 简历内容：`,
 };
 
+/**
+ * 流式输出 API
+ * 使用 ReadableStream 实现打字机效果
+ */
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -118,7 +116,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 支持的优化类型
     const validTypes = ['summary', 'experience', 'project', 'education', 'skills', 'analyze'];
     
     if (!validTypes.includes(type)) {
@@ -128,69 +125,73 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 获取对应的 Prompt 模板
     const promptTemplate = optimizePrompts[type as keyof typeof optimizePrompts];
-    
-    // 构建完整的 Prompt
-    let fullPrompt = promptTemplate + '\n\n' + content;
+    const fullPrompt = promptTemplate + '\n\n' + content;
 
-    // 调用 Deepseek API
-    const completion = await deepseek.chat.completions.create({
-      model: 'deepseek-chat',
-      messages: [
-        {
-          role: 'user',
-          content: fullPrompt,
-        },
-      ],
-      max_tokens: type === 'analyze' ? 2048 : 1024,
-      temperature: 0.7,
+    // 创建流式响应
+    const encoder = new TextEncoder();
+    let fullContent = '';
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          const completion = await deepseek.chat.completions.create({
+            model: 'deepseek-chat',
+            messages: [
+              {
+                role: 'user',
+                content: fullPrompt,
+              },
+            ],
+            max_tokens: type === 'analyze' ? 2048 : 1024,
+            temperature: 0.7,
+            stream: true, // 启用流式输出
+          });
+
+          // 处理流式响应
+          for await (const chunk of completion) {
+            const delta = chunk.choices[0]?.delta?.content || '';
+            if (delta) {
+              fullContent += delta;
+              // 发送 SSE 格式的数据
+              const data = JSON.stringify({
+                type: 'chunk',
+                content: delta,
+                fullContent: fullContent,
+              });
+              controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+            }
+          }
+
+          // 发送完成信号
+          const finishData = JSON.stringify({
+            type: 'done',
+            content: fullContent,
+            analysisType: type,
+          });
+          controller.enqueue(encoder.encode(`data: ${finishData}\n\n`));
+          controller.close();
+        } catch (error: any) {
+          console.error('Stream error:', error);
+          const errorData = JSON.stringify({
+            type: 'error',
+            error: error.message || '流式输出失败',
+          });
+          controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
+          controller.close();
+        }
+      },
     });
 
-    const optimizedContent = completion.choices[0]?.message?.content || '';
-
-    // 针对 analyze 类型，解析 JSON
-    if (type === 'analyze') {
-      try {
-        // 尝试提取 JSON（可能有 markdown 代码块）
-        let jsonStr = optimizedContent;
-        const jsonMatch = optimizedContent.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (jsonMatch) {
-          jsonStr = jsonMatch[1];
-        }
-        const analysis = JSON.parse(jsonStr.trim());
-        
-        return NextResponse.json({
-          success: true,
-          data: {
-            type,
-            analysis,
-          },
-        });
-      } catch {
-        // 解析失败，返回原始文本
-        return NextResponse.json({
-          success: true,
-          data: {
-            type,
-            analysis: {
-              rawText: optimizedContent,
-            },
-          },
-        });
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        original: content,
-        optimized: optimizedContent,
-        type,
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
       },
     });
   } catch (error: any) {
-    console.error('AI optimize error:', error);
+    console.error('AI stream error:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'AI 优化失败' },
       { status: 500 }

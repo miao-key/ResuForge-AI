@@ -12,22 +12,51 @@ interface SkillItemProps {
   };
   onChange: (skill: any) => void;
   onDelete: () => void;
+  onRecommend?: () => void;
+  isRecommending?: boolean;
 }
 
-export function SkillItem({ skill, onChange, onDelete }: SkillItemProps) {
+export function SkillItem({ 
+  skill, 
+  onChange, 
+  onDelete,
+  onRecommend,
+  isRecommending,
+}: SkillItemProps) {
   return (
     <div className="border border-slate-700 rounded-lg p-4 space-y-3">
       <div className="flex items-start justify-between">
         <Label className="text-slate-300">技能分类</Label>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onDelete}
-          className="h-6 w-6 p-0 text-slate-500 hover:text-red-400"
-          title="删除此技能分类"
-        >
-          ×
-        </Button>
+        <div className="flex items-center gap-2">
+          {onRecommend && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onRecommend}
+              disabled={isRecommending}
+              className="h-6 px-2 text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30"
+              title="AI 推荐技能"
+            >
+              {isRecommending ? (
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-3 w-3 animate-spin rounded-full border border-cyan-400 border-r-transparent" />
+                  推荐中
+                </span>
+              ) : (
+                '✨ AI 推荐'
+              )}
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onDelete}
+            className="h-6 w-6 p-0 text-slate-500 hover:text-red-400"
+            title="删除此技能分类"
+          >
+            ×
+          </Button>
+        </div>
       </div>
       <Input
         value={skill.category}
