@@ -15,9 +15,9 @@ export function Header() {
   };
 
   return (
-    <header className="border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/40 bg-white/70 backdrop-blur-xl">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="text-xl font-semibold text-slate-50">
+        <Link href="/" className="text-xl font-bold text-flow">
           ResuForge AI
         </Link>
 
@@ -26,23 +26,27 @@ export function Header() {
             <>
               <Link
                 href="/dashboard"
-                className="text-sm text-slate-300 hover:text-slate-50 transition"
+                className="text-sm text-slate-600 hover:text-blue-600 transition font-medium"
               >
                 我的简历
               </Link>
               <Link
                 href="/templates"
-                className="text-sm text-slate-300 hover:text-slate-50 transition"
+                className="text-sm text-slate-600 hover:text-blue-600 transition font-medium"
               >
                 模板库
               </Link>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-slate-400">{user.name}</span>
+                <div className="px-3 py-1 rounded-full bg-blue-50 border border-blue-100">
+                  <span className="text-sm text-blue-700 font-medium">
+                    {user.name}
+                  </span>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
-                  className="border-slate-700 hover:bg-slate-800"
+                  className="border-slate-200 hover:bg-slate-50 text-slate-700"
                 >
                   退出
                 </Button>
@@ -52,14 +56,14 @@ export function Header() {
             <>
               <Link
                 href="/login"
-                className="text-sm text-slate-300 hover:text-slate-50 transition"
+                className="text-sm text-slate-600 hover:text-blue-600 transition font-medium"
               >
                 登录
               </Link>
               <Link href="/register">
                 <Button
                   size="sm"
-                  className="bg-cyan-500 hover:bg-cyan-600 text-slate-950"
+                  className="btn-flow border-0 text-white shadow-md shadow-blue-500/30"
                 >
                   注册
                 </Button>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { withGuest } from '@/components/auth/with-auth';
+import { FlowBackground } from '@/components/layout/flow-background';
 import { validateEmail, validatePassword } from '@/lib/utils';
 import type { AuthResponse } from '@/types';
 import Link from 'next/link';
@@ -105,20 +106,29 @@ function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-50 mb-2">创建账号</h1>
-          <p className="text-slate-400">开始打造你的专业简历</p>
-        </div>
+    <>
+      <FlowBackground />
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h1 className="text-4xl font-bold text-flow mb-2">ResuForge AI</h1>
+            <p className="text-slate-500">智能简历锻造工坊</p>
+          </div>
 
-        {/* Register Form */}
-        <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-8">
+          <h2 className="text-2xl font-bold text-slate-800 mb-2 text-center">
+            创建账号
+          </h2>
+          <p className="text-slate-500 text-sm text-center mb-6">
+            开始打造你的专业简历
+          </p>
+
+          {/* Register Form */}
+          <div className="card-flow rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
                 姓名
               </label>
               <input
@@ -127,19 +137,19 @@ function RegisterPage() {
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 bg-slate-950/50 border ${
-                  errors.name ? 'border-red-500' : 'border-slate-700'
-                } rounded-lg text-slate-50 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition`}
+                className={`input-flow w-full px-4 py-3 rounded-lg text-slate-800 placeholder-slate-400 ${
+                  errors.name ? 'border-red-400' : ''
+                }`}
                 placeholder="请输入你的姓名"
               />
               {errors.name && (
-                <p className="mt-1.5 text-sm text-red-400">{errors.name}</p>
+                <p className="mt-1.5 text-sm text-red-500">{errors.name}</p>
               )}
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
                 邮箱
               </label>
               <input
@@ -148,19 +158,19 @@ function RegisterPage() {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 bg-slate-950/50 border ${
-                  errors.email ? 'border-red-500' : 'border-slate-700'
-                } rounded-lg text-slate-50 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition`}
+                className={`input-flow w-full px-4 py-3 rounded-lg text-slate-800 placeholder-slate-400 ${
+                  errors.email ? 'border-red-400' : ''
+                }`}
                 placeholder="your@email.com"
               />
               {errors.email && (
-                <p className="mt-1.5 text-sm text-red-400">{errors.email}</p>
+                <p className="mt-1.5 text-sm text-red-500">{errors.email}</p>
               )}
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
                 密码
               </label>
               <input
@@ -169,19 +179,19 @@ function RegisterPage() {
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 bg-slate-950/50 border ${
-                  errors.password ? 'border-red-500' : 'border-slate-700'
-                } rounded-lg text-slate-50 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition`}
+                className={`input-flow w-full px-4 py-3 rounded-lg text-slate-800 placeholder-slate-400 ${
+                  errors.password ? 'border-red-400' : ''
+                }`}
                 placeholder="至少 8 位，包含大小写字母和数字"
               />
               {errors.password && (
-                <p className="mt-1.5 text-sm text-red-400">{errors.password}</p>
+                <p className="mt-1.5 text-sm text-red-500">{errors.password}</p>
               )}
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
                 确认密码
               </label>
               <input
@@ -190,19 +200,19 @@ function RegisterPage() {
                 type="password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 bg-slate-950/50 border ${
-                  errors.confirmPassword ? 'border-red-500' : 'border-slate-700'
-                } rounded-lg text-slate-50 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition`}
+                className={`input-flow w-full px-4 py-3 rounded-lg text-slate-800 placeholder-slate-400 ${
+                  errors.confirmPassword ? 'border-red-400' : ''
+                }`}
                 placeholder="再次输入密码"
               />
               {errors.confirmPassword && (
-                <p className="mt-1.5 text-sm text-red-400">{errors.confirmPassword}</p>
+                <p className="mt-1.5 text-sm text-red-500">{errors.confirmPassword}</p>
               )}
             </div>
 
             {/* Submit Error */}
             {errors.submit && (
-              <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
                 {errors.submit}
               </div>
             )}
@@ -211,7 +221,7 @@ function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-600 hover:to-sky-600 disabled:from-slate-700 disabled:to-slate-700 text-white font-medium rounded-lg shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 disabled:shadow-none transition-all duration-200 disabled:cursor-not-allowed"
+              className="btn-flow w-full py-3 px-4 font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? '注册中...' : '注册'}
             </button>
@@ -219,31 +229,32 @@ function RegisterPage() {
 
           {/* Footer */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               已有账号？{' '}
               <Link
                 href="/login"
-                className="text-cyan-400 hover:text-cyan-300 font-medium transition"
+                className="text-blue-600 hover:text-blue-700 font-medium transition"
               >
                 立即登录
               </Link>
             </p>
           </div>
-        </div>
+          </div>
 
-        {/* Terms */}
-        <p className="mt-6 text-center text-xs text-slate-500">
-          注册即表示你同意我们的{' '}
-          <a href="#" className="text-slate-400 hover:text-slate-300 transition">
-            服务条款
-          </a>{' '}
-          和{' '}
-          <a href="#" className="text-slate-400 hover:text-slate-300 transition">
-            隐私政策
-          </a>
-        </p>
+          {/* Terms */}
+          <p className="mt-6 text-center text-xs text-slate-400">
+            注册即表示你同意我们的{' '}
+            <a href="#" className="text-blue-600 hover:text-blue-700 transition">
+              服务条款
+            </a>{' '}
+            和{' '}
+            <a href="#" className="text-blue-600 hover:text-blue-700 transition">
+              隐私政策
+            </a>
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

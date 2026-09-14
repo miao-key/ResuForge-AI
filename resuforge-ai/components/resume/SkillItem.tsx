@@ -16,17 +16,17 @@ interface SkillItemProps {
   isRecommending?: boolean;
 }
 
-export function SkillItem({ 
-  skill, 
-  onChange, 
+export function SkillItem({
+  skill,
+  onChange,
   onDelete,
   onRecommend,
   isRecommending,
 }: SkillItemProps) {
   return (
-    <div className="border border-slate-700 rounded-lg p-4 space-y-3">
+    <div className="border border-blue-100 rounded-lg p-4 space-y-3 bg-white/60 hover:bg-white/80 transition-colors">
       <div className="flex items-start justify-between">
-        <Label className="text-slate-300">技能分类</Label>
+        <Label className="text-slate-700 font-medium">Skill Category</Label>
         <div className="flex items-center gap-2">
           {onRecommend && (
             <Button
@@ -34,16 +34,16 @@ export function SkillItem({
               variant="ghost"
               onClick={onRecommend}
               disabled={isRecommending}
-              className="h-6 px-2 text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30"
-              title="AI 推荐技能"
+              className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+              title="AI Recommend Skills"
             >
               {isRecommending ? (
                 <span className="flex items-center gap-1">
-                  <span className="inline-block h-3 w-3 animate-spin rounded-full border border-cyan-400 border-r-transparent" />
-                  推荐中
+                  <span className="inline-block h-3 w-3 animate-spin rounded-full border border-blue-500 border-r-transparent" />
+                  Recommending...
                 </span>
               ) : (
-                '✨ AI 推荐'
+                '? AI Recommend'
               )}
             </Button>
           )}
@@ -51,22 +51,22 @@ export function SkillItem({
             size="sm"
             variant="ghost"
             onClick={onDelete}
-            className="h-6 w-6 p-0 text-slate-500 hover:text-red-400"
-            title="删除此技能分类"
+            className="h-6 w-6 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
+            title="Delete this skill category"
           >
-            ×
+            x
           </Button>
         </div>
       </div>
       <Input
         value={skill.category}
         onChange={(e) => onChange({ ...skill, category: e.target.value })}
-        placeholder="例：编程语言"
-        className="bg-slate-950/50 border-slate-700 text-slate-50"
+        placeholder="e.g. Programming Languages"
+        className="bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
       />
 
       <div>
-        <Label className="text-slate-300">技能列表</Label>
+        <Label className="text-slate-700 font-medium">Skills</Label>
         <Input
           value={skill.items.join(', ')}
           onChange={(e) =>
@@ -78,8 +78,8 @@ export function SkillItem({
                 .filter(Boolean),
             })
           }
-          placeholder="例：JavaScript, TypeScript, Python（用逗号分隔）"
-          className="mt-1.5 bg-slate-950/50 border-slate-700 text-slate-50"
+          placeholder="e.g. JavaScript, TypeScript, Python (comma separated)"
+          className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
         />
       </div>
     </div>

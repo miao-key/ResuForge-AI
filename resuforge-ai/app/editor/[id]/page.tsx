@@ -24,6 +24,7 @@ import { ProjectItem } from '@/components/resume/ProjectItem';
 import { SkillItem } from '@/components/resume/SkillItem';
 import { PreviewControls } from '@/components/resume/PreviewControls';
 import { useMounted } from '@/hooks/use-mounted';
+import { FlowBackground } from '@/components/layout/flow-background';
 
 function EditorPage() {
   const router = useRouter();
@@ -531,32 +532,34 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-cyan-500 border-r-transparent" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-cyan-50/50 flex items-center justify-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
-          <div className="flex items-center gap-4 min-w-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/dashboard')}
-              className="border-slate-700 hover:bg-slate-800 shrink-0"
-            >
-              ← 返回
-            </Button>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="简历标题"
-              className="w-48 md:w-64 bg-slate-950/50 border-slate-700 text-slate-50"
-            />
+    <>
+      <FlowBackground />
+      <div className="min-h-screen">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
+            <div className="flex items-center gap-4 min-w-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/dashboard')}
+                className="border-blue-200 hover:bg-blue-50 text-slate-700 shrink-0"
+              >
+                返回
+              </Button>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="简历标题"
+                className="w-48 md:w-64 bg-white/80 border-blue-100 text-slate-800"
+              />
             <AutoSaveIndicator
               status={autoSaveStatus}
               lastSavedAt={lastSavedAt}
@@ -574,7 +577,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
               variant="outline"
               size="sm"
               onClick={handleExportJSON}
-              className="border-slate-700 hover:bg-slate-800 text-slate-300"
+              className="border-blue-200 hover:bg-blue-50 text-slate-700"
               title="导出 JSON 备份"
             >
               📄 JSON
@@ -587,7 +590,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                 size="sm"
                 onClick={() => setShowExportOptions(!showExportOptions)}
                 disabled={isExporting}
-                className="border-slate-700 hover:bg-slate-800"
+                className="border-blue-200 hover:bg-blue-50"
               >
                 {isExporting ? '导出中...' : '📥 导出'} ▾
               </Button>
@@ -600,13 +603,13 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                     onClick={() => setShowExportOptions(false)}
                   />
                   {/* Dropdown */}
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50 p-2">
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-blue-200 rounded-lg shadow-xl z-50 p-2">
                     <button
                       onClick={() => {
                         handleExportPDF();
                         setShowExportOptions(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded hover:bg-slate-800 flex items-center gap-2 text-sm text-slate-200"
+                      className="w-full text-left px-3 py-2 rounded hover:bg-blue-50 flex items-center gap-2 text-sm text-slate-700"
                     >
                       <span>📥</span>
                       <span>导出 PDF (A4)</span>
@@ -616,18 +619,18 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                         handleExportImage();
                         setShowExportOptions(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded hover:bg-slate-800 flex items-center gap-2 text-sm text-slate-200"
+                      className="w-full text-left px-3 py-2 rounded hover:bg-blue-50 flex items-center gap-2 text-sm text-slate-700"
                     >
                       <span>🖼️</span>
                       <span>导出 PNG 图片</span>
                     </button>
-                    <div className="border-t border-slate-700 my-1" />
+                    <div className="border-t border-blue-200 my-1" />
                     <button
                       onClick={() => {
                         handlePrint();
                         setShowExportOptions(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded hover:bg-slate-800 flex items-center gap-2 text-sm text-slate-200"
+                      className="w-full text-left px-3 py-2 rounded hover:bg-blue-50 flex items-center gap-2 text-sm text-slate-700"
                     >
                       <span>🖨️</span>
                       <span>打印</span>
@@ -641,7 +644,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
               onClick={handleSave}
               disabled={isSaving || autoSaveStatus === 'saving'}
               size="sm"
-              className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 shrink-0"
+              className="btn-flow text-white shrink-0"
             >
               {isSaving || autoSaveStatus === 'saving' ? '保存中...' : '💾 保存'}
             </Button>
@@ -650,13 +653,13 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
 
         {/* 移动端 Tab 切换 */}
         <div className="lg:hidden mb-6">
-          <div className="flex border border-slate-700 rounded-lg overflow-hidden">
+          <div className="flex border border-blue-200 rounded-lg overflow-hidden">
             <button
               onClick={() => setActiveTab('edit')}
               className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
                 activeTab === 'edit'
-                  ? 'bg-cyan-500 text-slate-950'
-                  : 'text-slate-400 hover:text-slate-50'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-slate-500 hover:text-blue-600'
               }`}
             >
               编辑
@@ -665,8 +668,8 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
               onClick={() => setActiveTab('preview')}
               className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
                 activeTab === 'preview'
-                  ? 'bg-cyan-500 text-slate-950'
-                  : 'text-slate-400 hover:text-slate-50'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-slate-500 hover:text-blue-600'
               }`}
             >
               预览
@@ -686,52 +689,52 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
             <EditorSection title="个人信息">
               <div className="space-y-4">
                 <div>
-                  <Label className="text-slate-300">姓名</Label>
+                  <Label className="text-slate-700">姓名</Label>
                   <Input
                     value={content.personalInfo.name}
                     onChange={(e) => updatePersonalInfo('name', e.target.value)}
                     placeholder="张三"
-                    className="mt-1.5 bg-slate-950/50 border-slate-700 text-slate-50"
+                    className="mt-1.5 bg-white/80 border-blue-200 text-slate-800"
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-slate-300">邮箱</Label>
+                    <Label className="text-slate-700">邮箱</Label>
                     <Input
                       type="email"
                       value={content.personalInfo.email}
                       onChange={(e) => updatePersonalInfo('email', e.target.value)}
                       placeholder="zhang@example.com"
-                      className="mt-1.5 bg-slate-950/50 border-slate-700 text-slate-50"
+                      className="mt-1.5 bg-white/80 border-blue-200 text-slate-800"
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-300">电话</Label>
+                    <Label className="text-slate-700">电话</Label>
                     <Input
                       value={content.personalInfo.phone}
                       onChange={(e) => updatePersonalInfo('phone', e.target.value)}
                       placeholder="138-0000-0000"
-                      className="mt-1.5 bg-slate-950/50 border-slate-700 text-slate-50"
+                      className="mt-1.5 bg-white/80 border-blue-200 text-slate-800"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-slate-300">地址</Label>
+                    <Label className="text-slate-700">地址</Label>
                     <Input
                       value={content.personalInfo.location || ''}
                       onChange={(e) => updatePersonalInfo('location', e.target.value)}
                       placeholder="北京市朝阳区"
-                      className="mt-1.5 bg-slate-950/50 border-slate-700 text-slate-50"
+                      className="mt-1.5 bg-white/80 border-blue-200 text-slate-800"
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-300">个人网站</Label>
+                    <Label className="text-slate-700">个人网站</Label>
                     <Input
                       value={content.personalInfo.website || ''}
                       onChange={(e) => updatePersonalInfo('website', e.target.value)}
                       placeholder="https://example.com"
-                      className="mt-1.5 bg-slate-950/50 border-slate-700 text-slate-50"
+                      className="mt-1.5 bg-white/80 border-blue-200 text-slate-800"
                     />
                   </div>
                 </div>
@@ -750,7 +753,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                 onChange={(e) => updatePersonalInfo('summary', e.target.value)}
                 placeholder="用 2-3 句话介绍你的核心竞争力..."
                 rows={4}
-                className="bg-slate-950/50 border-slate-700 text-slate-50 resize-none"
+                className="bg-white/80 border-blue-200 text-slate-800 resize-none"
               />
             </EditorSection>
 
@@ -776,7 +779,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-slate-700 hover:bg-slate-800 w-full"
+                  className="border-blue-200 hover:bg-blue-50 w-full"
                   onClick={() =>
                     setContent({
                       ...content,
@@ -825,7 +828,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-slate-700 hover:bg-slate-800 w-full"
+                  className="border-blue-200 hover:bg-blue-50 w-full"
                   onClick={() =>
                     setContent({
                       ...content,
@@ -872,7 +875,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-slate-700 hover:bg-slate-800 w-full"
+                  className="border-blue-200 hover:bg-blue-50 w-full"
                   onClick={() =>
                     setContent({
                       ...content,
@@ -917,7 +920,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-slate-700 hover:bg-slate-800 w-full"
+                    className="border-blue-200 hover:bg-blue-50 w-full"
                     onClick={() =>
                       setContent({
                         ...content,
@@ -935,7 +938,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                     variant="outline"
                     onClick={handleRecommendSkills}
                     disabled={isOptimizing === 'skills'}
-                    className="border-cyan-700 hover:bg-cyan-950/30 text-cyan-400 whitespace-nowrap"
+                    className="border-blue-300 hover:bg-blue-50 text-blue-600 whitespace-nowrap"
                     title="基于简历内容推荐技能"
                   >
                     {isOptimizing === 'skills' ? (
@@ -958,7 +961,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
               isOptimizing={isOptimizing === 'analyze'}
               optimizeDisabled={!content.personalInfo.name}
             >
-              <div className="text-slate-400 text-sm">
+              <div className="text-slate-500 text-sm">
                 <p>基于简历内容，AI 将分析：</p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>内容完整度评分</li>
@@ -973,11 +976,11 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
 
           {/* Right Panel: Preview */}
           <div
-            className={`bg-slate-900/50 border border-slate-800 rounded-xl p-6 md:p-8 sticky top-8 h-fit max-h-[calc(100vh-6rem)] overflow-y-auto ${
+            className={`card-flow rounded-2xl p-6 md:p-8 sticky top-8 h-fit max-h-[calc(100vh-6rem)] overflow-y-auto ${
               activeTab === 'edit' ? 'hidden lg:block' : 'block'
             }`}
           >
-            <h3 className="text-lg font-semibold text-slate-50 mb-4">实时预览</h3>
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">实时预览</h3>
 
             {/* 预览控制面板 */}
             <PreviewControls
@@ -989,7 +992,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
             />
 
             {/* 预览内容 */}
-            <div className="overflow-auto bg-slate-800/30 rounded-lg p-4 flex justify-center">
+            <div className="overflow-auto bg-gradient-to-br from-blue-50/60 via-white to-cyan-50/60 rounded-xl p-4 flex justify-center border border-blue-100/60">
               <div
                 style={{
                   transform: `scale(${previewScale})`,
@@ -1040,7 +1043,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                 <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 mb-2">
                   <span className="text-3xl font-bold text-white">{analysisResult.overall}</span>
                 </div>
-                <p className="text-slate-400 text-sm">综合评分</p>
+                <p className="text-slate-500 text-sm">综合评分</p>
               </div>
             )}
 
@@ -1049,62 +1052,62 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
               <div className="space-y-3">
                 {analysisResult.completeness && (
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-300 w-28">内容完整度</span>
-                    <div className="flex-1 bg-slate-700 rounded-full h-2">
+                    <span className="text-sm text-slate-700 w-28">内容完整度</span>
+                    <div className="flex-1 bg-slate-200 rounded-full h-2">
                       <div 
                         className="bg-green-500 h-2 rounded-full transition-all"
                         style={{ width: `${analysisResult.completeness}%` }}
                       />
                     </div>
-                    <span className="text-sm text-slate-400 w-10">{analysisResult.completeness}</span>
+                    <span className="text-sm text-slate-500 w-10">{analysisResult.completeness}</span>
                   </div>
                 )}
                 {analysisResult.quality && (
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-300 w-28">描述质量</span>
-                    <div className="flex-1 bg-slate-700 rounded-full h-2">
+                    <span className="text-sm text-slate-700 w-28">描述质量</span>
+                    <div className="flex-1 bg-slate-200 rounded-full h-2">
                       <div 
                         className="bg-blue-500 h-2 rounded-full transition-all"
                         style={{ width: `${analysisResult.quality}%` }}
                       />
                     </div>
-                    <span className="text-sm text-slate-400 w-10">{analysisResult.quality}</span>
+                    <span className="text-sm text-slate-500 w-10">{analysisResult.quality}</span>
                   </div>
                 )}
                 {analysisResult.quantification && (
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-300 w-28">量化成果</span>
-                    <div className="flex-1 bg-slate-700 rounded-full h-2">
+                    <span className="text-sm text-slate-700 w-28">量化成果</span>
+                    <div className="flex-1 bg-slate-200 rounded-full h-2">
                       <div 
                         className="bg-purple-500 h-2 rounded-full transition-all"
                         style={{ width: `${analysisResult.quantification}%` }}
                       />
                     </div>
-                    <span className="text-sm text-slate-400 w-10">{analysisResult.quantification}</span>
+                    <span className="text-sm text-slate-500 w-10">{analysisResult.quantification}</span>
                   </div>
                 )}
                 {analysisResult.formatting && (
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-300 w-28">格式规范</span>
-                    <div className="flex-1 bg-slate-700 rounded-full h-2">
+                    <span className="text-sm text-slate-700 w-28">格式规范</span>
+                    <div className="flex-1 bg-slate-200 rounded-full h-2">
                       <div 
                         className="bg-cyan-500 h-2 rounded-full transition-all"
                         style={{ width: `${analysisResult.formatting}%` }}
                       />
                     </div>
-                    <span className="text-sm text-slate-400 w-10">{analysisResult.formatting}</span>
+                    <span className="text-sm text-slate-500 w-10">{analysisResult.formatting}</span>
                   </div>
                 )}
                 {analysisResult.keywords && (
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-300 w-28">关键词匹配</span>
-                    <div className="flex-1 bg-slate-700 rounded-full h-2">
+                    <span className="text-sm text-slate-700 w-28">关键词匹配</span>
+                    <div className="flex-1 bg-slate-200 rounded-full h-2">
                       <div 
                         className="bg-amber-500 h-2 rounded-full transition-all"
                         style={{ width: `${analysisResult.keywords}%` }}
                       />
                     </div>
-                    <span className="text-sm text-slate-400 w-10">{analysisResult.keywords}</span>
+                    <span className="text-sm text-slate-500 w-10">{analysisResult.keywords}</span>
                   </div>
                 )}
               </div>
@@ -1118,7 +1121,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                 </h4>
                 <ul className="space-y-1">
                   {analysisResult.strengths.map((s: string, i: number) => (
-                    <li key={i} className="text-sm text-slate-300 pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-green-500 before:rounded-full">
+                    <li key={i} className="text-sm text-slate-700 pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-green-500 before:rounded-full">
                       {s}
                     </li>
                   ))}
@@ -1134,7 +1137,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                 </h4>
                 <ul className="space-y-1">
                   {analysisResult.improvements.map((item: string, i: number) => (
-                    <li key={i} className="text-sm text-slate-300 pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-amber-500 before:rounded-full">
+                    <li key={i} className="text-sm text-slate-700 pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-amber-500 before:rounded-full">
                       {item}
                     </li>
                   ))}
@@ -1144,9 +1147,9 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
 
             {/* 原始文本（如果无法解析） */}
             {analysisResult.rawText && (
-              <div className="mt-4 p-3 bg-slate-800 rounded-lg">
-                <h4 className="text-xs text-slate-400 mb-2">AI 原始反馈：</h4>
-                <p className="text-sm text-slate-300 whitespace-pre-wrap">{analysisResult.rawText}</p>
+              <div className="mt-4 p-3 bg-blue-50/60 rounded-lg border border-blue-100">
+                <h4 className="text-xs text-slate-500 mb-2">AI 原始反馈：</h4>
+                <p className="text-sm text-slate-700 whitespace-pre-wrap">{analysisResult.rawText}</p>
               </div>
             )}
           </div>
@@ -1173,8 +1176,8 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
       >
         <div className="space-y-4 py-2">
           {/* 流式输出区域 */}
-          <div className="min-h-[150px] max-h-[400px] overflow-y-auto bg-slate-950/50 rounded-lg p-4 border border-slate-700">
-            <div className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">
+          <div className="min-h-[150px] max-h-[400px] overflow-y-auto bg-white/80 rounded-lg p-4 border border-blue-200">
+            <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
               {streamContent || (
                 <span className="text-slate-500 italic flex items-center gap-2">
                   <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-cyan-400" />
@@ -1200,7 +1203,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
                 )}
               </span>
-              <span className="text-slate-400">
+              <span className="text-slate-500">
                 {showStreamModal && !streamContent ? '生成中...' : streamContent ? '生成完成' : '等待中'}
               </span>
             </div>
@@ -1211,13 +1214,13 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
 
           {/* 操作按钮 */}
           {streamContent && (
-            <div className="flex items-center gap-3 pt-3 border-t border-slate-700">
+            <div className="flex items-center gap-3 pt-3 border-t border-blue-200">
               {streamType !== 'skills' && streamType !== 'analyze' ? (
                 <>
                   <Button
                     size="sm"
                     onClick={applyStreamResult}
-                    className="bg-cyan-500 hover:bg-cyan-600 text-slate-950"
+                    className="btn-flow text-white"
                   >
                     ✓ 应用建议
                   </Button>
@@ -1228,7 +1231,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                       // 重新生成 - 关闭弹窗，让用户重新点击
                       closeStreamModal();
                     }}
-                    className="border-slate-700 hover:bg-slate-800"
+                    className="border-blue-200 hover:bg-blue-50"
                   >
                     🔄 重新生成
                   </Button>
@@ -1270,7 +1273,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                         toast.error('技能解析失败，请手动复制内容');
                       }
                     }}
-                    className="bg-cyan-500 hover:bg-cyan-600 text-slate-950"
+                    className="btn-flow text-white"
                   >
                     ✓ 添加技能
                   </Button>
@@ -1278,7 +1281,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                     size="sm"
                     variant="outline"
                     onClick={closeStreamModal}
-                    className="border-slate-700 hover:bg-slate-800"
+                    className="border-blue-200 hover:bg-blue-50"
                   >
                     取消
                   </Button>
@@ -1305,7 +1308,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                       setShowAnalysis(true);
                       closeStreamModal();
                     }}
-                    className="bg-cyan-500 hover:bg-cyan-600 text-slate-950"
+                    className="btn-flow text-white"
                   >
                     ✓ 查看分析报告
                   </Button>
@@ -1313,7 +1316,7 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
                     size="sm"
                     variant="outline"
                     onClick={closeStreamModal}
-                    className="border-slate-700 hover:bg-slate-800"
+                    className="border-blue-200 hover:bg-blue-50"
                   >
                     取消
                   </Button>
@@ -1323,7 +1326,8 @@ ${content.skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('\n')}
           )}
         </div>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 }
 

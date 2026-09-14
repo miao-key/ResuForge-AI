@@ -5,20 +5,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         default:
-          "bg-slate-50 text-slate-900 shadow hover:bg-slate-50/90",
+          "bg-blue-500 text-white shadow-sm hover:bg-blue-600 active:bg-blue-700",
         destructive:
-          "bg-red-500 text-slate-50 shadow-sm hover:bg-red-500/90 focus-visible:ring-red-500",
+          "bg-red-500 text-white shadow-sm hover:bg-red-600 active:bg-red-700 focus-visible:ring-red-500",
         outline:
-          "border border-slate-700 bg-transparent shadow-sm hover:bg-slate-800 hover:text-slate-50",
+          "border border-blue-200 bg-white/80 text-slate-700 shadow-sm hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700",
         secondary:
-          "bg-slate-800 text-slate-50 shadow-sm hover:bg-slate-800/80",
-        ghost: "hover:bg-slate-800 hover:text-slate-50",
-        link: "text-slate-50 underline-offset-4 hover:underline",
+          "bg-slate-100 text-slate-700 shadow-sm hover:bg-slate-200 active:bg-slate-300",
+        ghost: "text-slate-600 hover:bg-blue-50 hover:text-blue-700",
+        link: "text-blue-600 underline-offset-4 hover:underline hover:text-blue-700",
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -46,7 +46,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, loading, loadingText, children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     const isDisabled = loading || disabled;
-    
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
@@ -58,8 +58,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading ? (
           <>
-            <span 
-              className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" 
+            <span
+              className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"
               aria-hidden="true"
             />
             <span className="sr-only">加载中</span>
