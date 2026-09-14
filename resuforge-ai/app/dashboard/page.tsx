@@ -72,10 +72,11 @@ function DashboardPage() {
     setDeleteTarget(null);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast.info('已退出登录');
-    router.push('/login');
+    // 强制刷新页面，确保 middleware 重新评估认证状态
+    window.location.href = '/login';
   };
 
   if (!mounted) {

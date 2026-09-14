@@ -35,6 +35,7 @@ function LoginPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -163,13 +164,8 @@ function LoginPage() {
               <button
                 type="button"
                 onClick={() => {
-                  const form = document.querySelector('form');
-                  const emailInput = form?.querySelector('#email') as HTMLInputElement;
-                  const passwordInput = form?.querySelector('#password') as HTMLInputElement;
-                  if (emailInput && passwordInput) {
-                    emailInput.value = 'user1@demo.com';
-                    passwordInput.value = 'demo1234';
-                  }
+                  setValue('email', 'user1@demo.com', { shouldValidate: true });
+                  setValue('password', 'Demo@2026', { shouldValidate: true });
                 }}
                 className="p-2 bg-slate-700/50 hover:bg-slate-700 rounded text-slate-400 hover:text-slate-200 transition"
               >
@@ -178,13 +174,8 @@ function LoginPage() {
               <button
                 type="button"
                 onClick={() => {
-                  const form = document.querySelector('form');
-                  const emailInput = form?.querySelector('#email') as HTMLInputElement;
-                  const passwordInput = form?.querySelector('#password') as HTMLInputElement;
-                  if (emailInput && passwordInput) {
-                    emailInput.value = 'user2@demo.com';
-                    passwordInput.value = 'demo1234';
-                  }
+                  setValue('email', 'user2@demo.com', { shouldValidate: true });
+                  setValue('password', 'Demo@2026', { shouldValidate: true });
                 }}
                 className="p-2 bg-slate-700/50 hover:bg-slate-700 rounded text-slate-400 hover:text-slate-200 transition"
               >
@@ -193,20 +184,15 @@ function LoginPage() {
               <button
                 type="button"
                 onClick={() => {
-                  const form = document.querySelector('form');
-                  const emailInput = form?.querySelector('#email') as HTMLInputElement;
-                  const passwordInput = form?.querySelector('#password') as HTMLInputElement;
-                  if (emailInput && passwordInput) {
-                    emailInput.value = 'user3@demo.com';
-                    passwordInput.value = 'demo1234';
-                  }
+                  setValue('email', 'user3@demo.com', { shouldValidate: true });
+                  setValue('password', 'Demo@2026', { shouldValidate: true });
                 }}
                 className="p-2 bg-slate-700/50 hover:bg-slate-700 rounded text-slate-400 hover:text-slate-200 transition"
               >
                 user3@demo.com
               </button>
             </div>
-            <p className="text-xs text-slate-600 text-center mt-2">密码: demo1234</p>
+            <p className="text-xs text-slate-600 text-center mt-2">密码: Demo@2026</p>
           </div>
         </div>
       </div>

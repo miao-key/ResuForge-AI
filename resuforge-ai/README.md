@@ -191,9 +191,9 @@ resuforge-ai/
 
 | 邮箱 | 密码 | User ID |
 |------|------|---------|
-| user1@demo.com | demo1234 | user-001 |
-| user2@demo.com | demo1234 | user-002 |
-| user3@demo.com | demo1234 | user-003 |
+| user1@demo.com | Demo@2026 | user-001 |
+| user2@demo.com | Demo@2026 | user-002 |
+| user3@demo.com | Demo@2026 | user-003 |
 
 ### 创建简历
 
