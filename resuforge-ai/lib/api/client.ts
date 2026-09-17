@@ -59,6 +59,8 @@ class ApiClient {
     try {
       const response = await fetchWithRetry(`${API_URL}${endpoint}`, {
         ...options,
+        // 始终带上 cookie（httpOnly 的 auth-token 由浏览器自动附加）
+        credentials: 'include',
         headers: {
           ...this.getHeaders(),
           ...options.headers,
@@ -70,13 +72,20 @@ class ApiClient {
       if (!response.ok) {
         // 401 表示 Token 过期或无效，自动跳转到登录页
         if (response.status === 401) {
-          const { logout } = useAuthStore.getState();
-          await logout();
-          
-          // 只在浏览器环境跳转
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login?expired=true';
+          // 注意：只有非 /api/auth/me 请求的 401 才跳转，避免循环
+          if (!endpoint.includes('/api/auth/me')) {
+            const { logout } = useAuthStore.getState();
+            await logout();
+            
+            // 只在浏览器环境跳转
+            if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+              window.location.href = '/login?expired=true';
+            }
           }
+          return {
+            success: false,
+            error: data.error || '未授权',
+          };
         }
         
         // 429 请求过多

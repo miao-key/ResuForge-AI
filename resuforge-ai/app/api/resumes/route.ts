@@ -1,37 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { createClient } from '@/lib/db/supabase';
+import { authenticateRequest } from '@/lib/auth/api-auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-secret-key-change-in-production'
-);
-
-async function verifyToken(token: string) {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload;
-  } catch (error) {
-    return null;
-  }
-}
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const userId = await authenticateRequest(request);
+    if (!userId) {
       return NextResponse.json(
         { success: false, error: '未授权' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
-
-    if (!payload || !payload.userId) {
-      return NextResponse.json(
-        { success: false, error: '无效的 token' },
         { status: 401 }
       );
     }
@@ -42,7 +21,7 @@ export async function GET(request: NextRequest) {
     const { data: resumes, error } = await supabase
       .from('resumes')
       .select('*')
-      .eq('user_id', payload.userId)
+      .eq('user_id', userId)
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -64,21 +43,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const userId = await authenticateRequest(request);
+    if (!userId) {
       return NextResponse.json(
         { success: false, error: '未授权' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
-
-    if (!payload || !payload.userId) {
-      return NextResponse.json(
-        { success: false, error: '无效的 token' },
         { status: 401 }
       );
     }
@@ -99,7 +67,7 @@ export async function POST(request: NextRequest) {
     const { data: resume, error } = await supabase
       .from('resumes')
       .insert({
-        user_id: payload.userId as string,
+        user_id: userId,
         title,
         template_id: template_id || 'classic',
         content: JSON.stringify(content || {}),

@@ -19,7 +19,7 @@ export async function signToken(payload: JWTPayload): Promise<string> {
   return await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('7d') // 7 天过期
+    .setExpirationTime('24h') // 24 小时过期
     .sign(JWT_SECRET);
 }
 
@@ -41,12 +41,17 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
  * 从 Cookie 中获取当前用户
  */
 export async function getCurrentUser(): Promise<JWTPayload | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(TOKEN_NAME)?.value;
-  
-  if (!token) return null;
-  
-  return await verifyToken(token);
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(TOKEN_NAME)?.value;
+    
+    if (!token) return null;
+    
+    return await verifyToken(token);
+  } catch (error) {
+    console.error('getCurrentUser error:', error);
+    return null;
+  }
 }
 
 /**
@@ -58,7 +63,7 @@ export async function setAuthCookie(token: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 天
+    maxAge: 60 * 60 * 24, // 24 小时
     path: '/',
   });
 }

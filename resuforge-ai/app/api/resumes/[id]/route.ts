@@ -1,40 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { createClient } from '@/lib/db/supabase';
+import { authenticateRequest } from '@/lib/auth/api-auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-secret-key-change-in-production'
-);
-
-async function verifyToken(token: string) {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload;
-  } catch (error) {
-    return null;
-  }
-}
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authHeader = request.headers.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const userId = await authenticateRequest(request);
+    if (!userId) {
       return NextResponse.json(
         { success: false, error: '未授权' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
-
-    if (!payload || !payload.userId) {
-      return NextResponse.json(
-        { success: false, error: '无效的 token' },
         { status: 401 }
       );
     }
@@ -47,7 +26,7 @@ export async function GET(
       .from('resumes')
       .select('*')
       .eq('id', id)
-      .eq('user_id', payload.userId as string)
+      .eq('user_id', userId)
       .single();
 
     if (error || !resume) {
@@ -75,21 +54,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authHeader = request.headers.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const userId = await authenticateRequest(request);
+    if (!userId) {
       return NextResponse.json(
         { success: false, error: '未授权' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
-
-    if (!payload || !payload.userId) {
-      return NextResponse.json(
-        { success: false, error: '无效的 token' },
         { status: 401 }
       );
     }
@@ -116,7 +84,7 @@ export async function PUT(
       .from('resumes')
       .update(updateData)
       .eq('id', id)
-      .eq('user_id', payload.userId as string)
+      .eq('user_id', userId)
       .select('*')
       .single();
 
@@ -145,21 +113,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authHeader = request.headers.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const userId = await authenticateRequest(request);
+    if (!userId) {
       return NextResponse.json(
         { success: false, error: '未授权' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
-
-    if (!payload || !payload.userId) {
-      return NextResponse.json(
-        { success: false, error: '无效的 token' },
         { status: 401 }
       );
     }
@@ -172,7 +129,7 @@ export async function DELETE(
       .from('resumes')
       .delete()
       .eq('id', id)
-      .eq('user_id', payload.userId as string);
+      .eq('user_id', userId);
 
     if (error) {
       throw error;
