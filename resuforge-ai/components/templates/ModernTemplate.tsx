@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeContent } from '@/types';
+import { RichTextView } from '@/components/resume/RichTextView';
 
 interface ModernTemplateProps {
   content: ResumeContent;

@@ -1,5 +1,6 @@
 import { ResumeContent } from '@/types';
 import { sectionHasContent, getFieldValue, getCustomFieldValue } from '@/lib/resume/content-transform';
+import { RichTextView } from '@/components/resume/RichTextView';
 
 interface ClassicTemplateProps {
   content: ResumeContent;
@@ -89,6 +90,7 @@ export function ClassicTemplate({ content, themeColor }: ClassicTemplateProps) {
                 const courses = getFieldValue(item, 'courses');
                 const awards = getFieldValue(item, 'awards');
                 const description = getFieldValue(item, 'description');
+                const descField = item.fields?.find(f => f.key === 'description');
 
                 if (!school && !degree && !major) return null;
 
@@ -116,15 +118,24 @@ export function ClassicTemplate({ content, themeColor }: ClassicTemplateProps) {
                       </p>
                     )}
                     {description && (
-                      <p className="text-sm text-slate-700 mt-2 leading-relaxed whitespace-pre-line">
-                        {description}
-                      </p>
+                      <RichTextView
+                        text={description}
+                        bold={descField?.bold}
+                        textAlign={descField?.textAlign}
+                        className="text-sm text-slate-700 mt-2 leading-relaxed"
+                      />
                     )}
                     {/* 渲染自定义字段 */}
                     {customFields.length > 0 && customFields.map(cf => (
                       cf.value && (
                         <p key={cf.id} className="text-sm text-slate-600 mt-1">
-                          <span className="font-medium">{cf.label}：</span>{cf.value}
+                          <span className="font-medium">{cf.label}：</span>
+                          <RichTextView
+                            text={cf.value}
+                            bold={cf.bold}
+                            textAlign={cf.textAlign}
+                            className="inline"
+                          />
                         </p>
                       )
                     ))}
@@ -139,6 +150,7 @@ export function ClassicTemplate({ content, themeColor }: ClassicTemplateProps) {
                 const endDate = getFieldValue(item, 'endDate');
                 const current = getFieldValue(item, 'current');
                 const description = getFieldValue(item, 'description');
+                const descField = item.fields?.find(f => f.key === 'description');
 
                 if (!company && !position) return null;
 
@@ -147,19 +159,26 @@ export function ClassicTemplate({ content, themeColor }: ClassicTemplateProps) {
                     <div className="flex justify-between items-baseline mb-1">
                       <h3 className="font-bold text-lg text-slate-800">{company}</h3>
                       <span className="text-sm text-slate-600 font-medium">
-                        {startDate} - {current === 'true' || current === '是' ? '至今' : endDate}
+                        {startDate} - {current === 'true' || current === '是' || endDate === '至今' ? '至今' : endDate}
                       </span>
                     </div>
                     <p className="text-sm text-slate-600 font-semibold mb-2">{position}</p>
                     {description && (
-                      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                        {description}
-                      </p>
+                      <RichTextView
+                        text={description}
+                        className="text-sm text-slate-700 leading-relaxed"
+                      />
                     )}
                     {customFields.length > 0 && customFields.map(cf => (
                       cf.value && (
                         <p key={cf.id} className="text-sm text-slate-600 mt-1">
-                          <span className="font-medium">{cf.label}：</span>{cf.value}
+                          <span className="font-medium">{cf.label}：</span>
+                          <RichTextView
+                            text={cf.value}
+                            bold={cf.bold}
+                            textAlign={cf.textAlign}
+                            className="inline"
+                          />
                         </p>
                       )
                     ))}
@@ -175,6 +194,7 @@ export function ClassicTemplate({ content, themeColor }: ClassicTemplateProps) {
                 const technologies = getFieldValue(item, 'technologies');
                 const url = getFieldValue(item, 'url');
                 const description = getFieldValue(item, 'description');
+                const descField = item.fields?.find(f => f.key === 'description');
 
                 if (!name) return null;
 
@@ -209,14 +229,21 @@ export function ClassicTemplate({ content, themeColor }: ClassicTemplateProps) {
                       </div>
                     )}
                     {description && (
-                      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                        {description}
-                      </p>
+                      <RichTextView
+                        text={description}
+                        className="text-sm text-slate-700 leading-relaxed"
+                      />
                     )}
                     {customFields.length > 0 && customFields.map(cf => (
                       cf.value && (
                         <p key={cf.id} className="text-sm text-slate-600 mt-1">
-                          <span className="font-medium">{cf.label}：</span>{cf.value}
+                          <span className="font-medium">{cf.label}：</span>
+                          <RichTextView
+                            text={cf.value}
+                            bold={cf.bold}
+                            textAlign={cf.textAlign}
+                            className="inline"
+                          />
                         </p>
                       )
                     ))}
@@ -225,29 +252,19 @@ export function ClassicTemplate({ content, themeColor }: ClassicTemplateProps) {
               }
 
               if (section.title === '专业技能') {
-                const category = getFieldValue(item, 'category');
-                const items = getFieldValue(item, 'items');
+                const description = getFieldValue(item, 'description');
+                const descField = item.fields?.find(f => f.key === 'description');
 
-                if (!category && !items) return null;
-
-                const itemsList = items ? items.split(',').map(t => t.trim()).filter(Boolean) : [];
+                if (!description) return null;
 
                 return (
-                  <div key={item.id} className="text-sm">
-                    {category && (
-                      <span className="font-bold text-slate-800">{category}: </span>
-                    )}
-                    <span className="text-slate-700">
-                      {itemsList.join(' · ')}
-                    </span>
-                    {customFields.length > 0 && customFields.map(cf => (
-                      cf.value && (
-                        <span key={cf.id} className="text-slate-700 ml-2">
-                          · {cf.value}
-                        </span>
-                      )
-                    ))}
-                  </div>
+                  <RichTextView
+                    key={item.id}
+                    text={description}
+                    bold={descField?.bold}
+                    textAlign={descField?.textAlign}
+                    className="text-sm text-slate-700 leading-relaxed"
+                  />
                 );
               }
 
@@ -257,7 +274,13 @@ export function ClassicTemplate({ content, themeColor }: ClassicTemplateProps) {
                   {customFields.map(cf => (
                     cf.value && (
                       <p key={cf.id} className="text-slate-700">
-                        <span className="font-medium text-slate-800">{cf.label}：</span>{cf.value}
+                        <span className="font-medium text-slate-800">{cf.label}：</span>
+                        <RichTextView
+                          text={cf.value}
+                          bold={cf.bold}
+                          textAlign={cf.textAlign}
+                          className="inline"
+                        />
                       </p>
                     )
                   ))}

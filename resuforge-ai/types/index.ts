@@ -60,7 +60,8 @@ export interface Section {
   icon?: string;                    // 菜单图标
   order: number;                    // 排序顺序
   items: SectionItem[];             // 该菜单下的条目列表
-  isBuiltIn: boolean;               // 是否为内置菜单（内置菜单不可删除）
+  isBuiltIn: boolean;               // 是否为内置菜单（控制字段模板和图标）
+  deletable?: boolean;              // 是否允许用户删除（默认：自定义 true，内置 false）
 }
 
 // 内置菜单类型
@@ -68,6 +69,7 @@ export type BuiltInSectionType =
   | 'personalInfo'      // 个人信息（特殊处理）
   | 'education'         // 教育经历
   | 'workExperience'    // 工作经历
+  | 'internship'        // 实习经历
   | 'projects'          // 项目经历
   | 'skills'            // 专业技能
   | 'advantages'        // 个人优势
@@ -94,11 +96,13 @@ export interface SectionItem {
 export interface SectionField {
   key: string;           // 字段标识
   label: string;         // 字段标签（如：学校名称、职位名称）
-  value?: string;       // 字段值（编辑时填充）
+  value?: string;        // 字段值（编辑时填充）
   type: 'text' | 'textarea' | 'date' | 'year' | 'url';  // 字段类型
   required?: boolean;     // 是否必填
-  placeholder?: string;  // 占位符提示
+  placeholder?: string;   // 占位符提示
   order: number;         // 排序顺序
+  bold?: boolean;         // 是否加粗
+  textAlign?: 'left' | 'center' | 'right'; // 文本对齐
 }
 
 // 字段定义（用于配置，不含 value）
@@ -111,6 +115,8 @@ export interface CustomField {
   value: string;         // 字段值
   type: 'text' | 'textarea' | 'date' | 'year' | 'url';
   order: number;
+  bold?: boolean;         // 是否加粗
+  textAlign?: 'left' | 'center' | 'right'; // 文本对齐
 }
 
 // ==================== 旧版兼容类型（保留用于数据迁移）====================

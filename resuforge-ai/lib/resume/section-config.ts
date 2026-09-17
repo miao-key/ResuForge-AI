@@ -11,16 +11,15 @@ const educationDefaultFields: SectionFieldDefinition[] = [
   { key: 'description', label: '经历描述', type: 'textarea', required: true, order: 5, placeholder: '描述在校期间的学习、项目、实践等内容...' },
 ];
 
-// 工作经历默认字段
-const workExperienceDefaultFields: SectionFieldDefinition[] = [
+// 工作经历默认字段（去掉"目前在职"，因为日期本身足以表达在任状态）
+const workExperienceBaseFields: SectionFieldDefinition[] = [
   { key: 'company', label: '公司名称', type: 'text', required: true, order: 1, placeholder: '例如：字节跳动' },
   { key: 'position', label: '职位名称', type: 'text', required: true, order: 2, placeholder: '例如：前端工程师' },
   { key: 'department', label: '所在部门', type: 'text', order: 3, placeholder: '例如：电商部门（选填）' },
   { key: 'location', label: '工作地点', type: 'text', order: 4, placeholder: '例如：北京市' },
   { key: 'startDate', label: '开始时间', type: 'date', order: 5 },
   { key: 'endDate', label: '结束时间', type: 'date', order: 6 },
-  { key: 'current', label: '目前在职', type: 'text', order: 7 },
-  { key: 'description', label: '工作描述', type: 'textarea', required: true, order: 8, placeholder: '描述工作职责和成就...' },
+  { key: 'description', label: '工作描述', type: 'textarea', required: true, order: 7, placeholder: '描述工作职责和成就...' },
 ];
 
 // 项目经历默认字段
@@ -36,15 +35,12 @@ const projectsDefaultFields: SectionFieldDefinition[] = [
 
 // 专业技能默认字段
 const skillsDefaultFields: SectionFieldDefinition[] = [
-  { key: 'category', label: '技能分类', type: 'text', required: true, order: 1, placeholder: '例如：前端开发 / 编程语言' },
-  { key: 'items', label: '技能列表', type: 'text', required: true, order: 2, placeholder: '例如：React, Vue, TypeScript（逗号分隔）' },
-  { key: 'level', label: '熟练程度', type: 'text', order: 3, placeholder: '例如：精通、熟练、了解' },
+  { key: 'description', label: '技能描述', type: 'textarea', required: true, order: 1, placeholder: '例如：熟练掌握 React、TypeScript，具备 2 年大型 SaaS 前端架构经验，能够独立完成从需求评审到上线的全流程...' },
 ];
 
 // 个人优势默认字段
 const advantagesDefaultFields: SectionFieldDefinition[] = [
-  { key: 'title', label: '优势标题', type: 'text', required: true, order: 1, placeholder: '例如：技术创新能力' },
-  { key: 'description', label: '优势描述', type: 'textarea', required: true, order: 2, placeholder: '详细描述你的优势...' },
+  { key: 'description', label: '优势描述', type: 'textarea', required: true, order: 1, placeholder: '详细描述你的优势...' },
 ];
 
 // 社交主页默认字段
@@ -65,7 +61,13 @@ export const BUILT_IN_SECTIONS: Record<BuiltInSectionType, BuiltInSectionConfig>
     type: 'workExperience',
     title: '工作经历',
     icon: '💼',
-    defaultFields: workExperienceDefaultFields,
+    defaultFields: workExperienceBaseFields,
+  },
+  internship: {
+    type: 'internship',
+    title: '实习经历',
+    icon: '🌱',
+    defaultFields: workExperienceBaseFields,
   },
   projects: {
     type: 'projects',
@@ -112,6 +114,7 @@ export const DEFAULT_SECTIONS: BuiltInSectionType[] = [
 export const AVAILABLE_BUILT_IN_SECTIONS: BuiltInSectionType[] = [
   'education',
   'workExperience',
+  'internship',
   'projects',
   'skills',
   'advantages',
@@ -123,8 +126,19 @@ export function getSectionConfig(type: BuiltInSectionType): BuiltInSectionConfig
   return BUILT_IN_SECTIONS[type];
 }
 
+// 用户添加后可删除的内置菜单类型（用户主动添加实例化的预设，允许再次删除）
+export const REMOVABLE_BUILT_IN_SECTIONS: BuiltInSectionType[] = [
+  'workExperience',
+  'internship',
+];
+
 // 创建新的内置菜单（带默认模板）
-export function createBuiltInSection(type: BuiltInSectionType, order: number) {
+// 当 deletable 为 true 时，即使用户是手动添加的，也可以再次删除（如：工作/实习经历）
+export function createBuiltInSection(
+  type: BuiltInSectionType,
+  order: number,
+  deletable: boolean = false,
+) {
   const config = BUILT_IN_SECTIONS[type];
   // 创建时自动添加一个默认模板条目
   const defaultItem = createSectionItem(type);
@@ -135,6 +149,7 @@ export function createBuiltInSection(type: BuiltInSectionType, order: number) {
     order,
     items: [defaultItem],
     isBuiltIn: true,
+    deletable,
   };
 }
 
@@ -158,6 +173,7 @@ export function getSectionItemLabel(sectionType: BuiltInSectionType): string {
   const labels: Record<BuiltInSectionType, string> = {
     education: '教育',
     workExperience: '工作',
+    internship: '实习',
     projects: '项目',
     skills: '技能',
     advantages: '优势',

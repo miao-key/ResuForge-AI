@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Dialog } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/toast';
 import type { ResumeContent, Section, PersonalInfo } from '@/types';
-import { ResumeRenderer } from '@/components/resume/ResumeRenderer';
 import { TemplateSelector } from '@/components/templates/TemplateSelector';
 import { exportToPDF, generatePDFFileName, exportToImage } from '@/lib/pdf/export';
 import { exportResumeAsJSON } from '@/lib/utils/export';
@@ -17,7 +16,7 @@ import { useAutoSave } from '@/hooks/use-auto-save';
 import { AutoSaveIndicator } from '@/components/resume/AutoSaveIndicator';
 import { PersonalInfoEditor } from '@/components/resume/PersonalInfoEditor';
 import { SectionEditor } from '@/components/resume/SectionEditor';
-import { PreviewControls } from '@/components/resume/PreviewControls';
+import { ZoomablePreview, type ZoomablePreviewHandle } from '@/components/resume/ZoomablePreview';
 import { useMounted } from '@/hooks/use-mounted';
 import { FlowBackground } from '@/components/layout/flow-background';
 import { DEFAULT_SECTIONS, createBuiltInSection } from '@/lib/resume/section-config';
@@ -57,15 +56,52 @@ function EditorPage() {
   const [isOptimizing, setIsOptimizing] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
 
+  // --- 左右栏分隔条：宽度百分比 + 拖拽 refs ---
+  const [leftWidthPct, setLeftWidthPct] = useState(50); // 左侧占整体宽度百分比
+  const isDraggingRef = useRef(false);
+  const splitterContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // 拖拽分隔条：限制在 [25%, 75%]
+  const handleSplitterMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isDraggingRef.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current || !splitterContainerRef.current) return;
+      const rect = splitterContainerRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const pct = (x / rect.width) * 100;
+      const clamped = Math.min(75, Math.max(25, pct));
+      setLeftWidthPct(clamped);
+    };
+    const handleMouseUp = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
   // --- 流式输出状态 ---
   const [streamContent, setStreamContent] = useState('');
   const [streamType, setStreamType] = useState<string | null>(null);
   const [showStreamModal, setShowStreamModal] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // --- 预览控制状态 ---
-  const [previewScale, setPreviewScale] = useState(1);
-  const [themeColor, setThemeColor] = useState('#0891b2');
+  // 预览区域 ref（导出时用于临时取消缩放，保证截图清晰）
+  const desktopPreviewRef = useRef<ZoomablePreviewHandle>(null);
+  const mobilePreviewRef = useRef<ZoomablePreviewHandle>(null);
+
   const [showExportOptions, setShowExportOptions] = useState(false);
 
   // 构建 ResumeContent
@@ -192,16 +228,24 @@ function EditorPage() {
     setIsExporting(true);
     try {
       const content = buildContent();
-      const fileName = content.personalInfo.name 
-        ? `${content.personalInfo.name}_简历.pdf` 
+      const fileName = content.personalInfo.name
+        ? `${content.personalInfo.name}_简历.pdf`
         : '简历.pdf';
-      await exportToPDF('resume-preview', fileName, {
-        quality: 2,
-        format: 'a4',
-        orientation: 'portrait',
-        pageNumbers: true,
-      });
-      toast.success('PDF 导出成功！');
+      // 临时进入原始尺寸，保证截图清晰
+      const restoreA = await desktopPreviewRef.current?.prepareForExport();
+      const restoreB = await mobilePreviewRef.current?.prepareForExport();
+      try {
+        await exportToPDF('resume-preview', fileName, {
+          quality: 2,
+          format: 'a4',
+          orientation: 'portrait',
+          pageNumbers: true,
+        });
+        toast.success('PDF 导出成功！');
+      } finally {
+        restoreA?.();
+        restoreB?.();
+      }
     } catch (error) {
       console.error('Export PDF error:', error);
       toast.error('导出失败，请稍后重试');
@@ -215,22 +259,24 @@ function EditorPage() {
     setIsExporting(true);
     try {
       const content = buildContent();
-      const fileName = content.personalInfo.name 
-        ? `${content.personalInfo.name}_简历.png` 
+      const fileName = content.personalInfo.name
+        ? `${content.personalInfo.name}_简历.png`
         : '简历.png';
-      await exportToImage('resume-preview', fileName);
-      toast.success('图片导出成功！');
+      const restoreA = await desktopPreviewRef.current?.prepareForExport();
+      const restoreB = await mobilePreviewRef.current?.prepareForExport();
+      try {
+        await exportToImage('resume-preview', fileName);
+        toast.success('图片导出成功！');
+      } finally {
+        restoreA?.();
+        restoreB?.();
+      }
     } catch (error) {
       console.error('Export image error:', error);
       toast.error('导出图片失败，请稍后重试');
     } finally {
       setIsExporting(false);
     }
-  };
-
-  // --- 打印 ---
-  const handlePrint = () => {
-    window.print();
   };
 
   // --- 导出 JSON ---
@@ -263,10 +309,12 @@ function EditorPage() {
     // 根据 section 标题推断优化类型
     const section = sections.find(s => s.id === sectionId);
     const sectionTitle = section?.title || '';
-    let optimizeType = 'experience';
+    const isCustomSection = !section?.isBuiltIn;
+    let optimizeType: string = 'experience';
     if (sectionTitle.includes('教育')) optimizeType = 'education';
     else if (sectionTitle.includes('项目')) optimizeType = 'project';
     else if (sectionTitle.includes('技能')) optimizeType = 'skills';
+    else if (isCustomSection) optimizeType = 'custom';
 
     const optimizeKey = `${sectionId}-${itemId}`;
     setIsOptimizing(optimizeKey);
@@ -281,7 +329,11 @@ function EditorPage() {
       const response = await fetch('/api/ai/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: value, type: optimizeType }),
+        body: JSON.stringify({
+          content: value,
+          type: optimizeType,
+          ...(optimizeType === 'custom' ? { sectionTitle } : {}),
+        }),
         signal: abortControllerRef.current.signal,
       });
 
@@ -454,14 +506,6 @@ function EditorPage() {
                         <span>🖼️</span>
                         <span>导出 PNG 图片</span>
                       </button>
-                      <div className="border-t border-blue-200 my-1" />
-                      <button
-                        onClick={() => { handlePrint(); setShowExportOptions(false); }}
-                        className="w-full text-left px-3 py-2 rounded hover:bg-blue-50 flex items-center gap-2 text-sm text-slate-700"
-                      >
-                        <span>🖨️</span>
-                        <span>打印</span>
-                      </button>
                     </div>
                   </>
                 )}
@@ -504,24 +548,100 @@ function EditorPage() {
             </div>
           </div>
 
-          {/* Editor Content */}
-          <div
-            className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${
-              activeTab === 'edit' ? 'block' : 'hidden lg:grid'
-            }`}
-          >
-            {/* Left Panel: Editor */}
-            <div className="space-y-6">
+          {/* Editor Content - 桌面端：左右独立滚动 + 中间可拖拽分隔条 */}
+          <div className={`hidden lg:block ${activeTab === 'edit' ? '' : ''}`}>
+            <div
+              ref={splitterContainerRef}
+              className="flex w-full gap-0 items-stretch"
+              style={{ height: 'calc(100vh - 7rem)' }}
+            >
+              {/* Left Panel: Editor - 独立滚动 */}
+              <div
+                className="overflow-y-auto pr-6"
+                style={{ width: `calc(${leftWidthPct}% - 0.375rem)` }}
+              >
+                <div className="space-y-6">
+                  {/* 个人信息 */}
+                  <div className="border border-blue-100 rounded-xl overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-blue-100">
+                      <h3 className="text-lg font-semibold text-slate-800">个人信息</h3>
+                    </div>
+                    <div className="bg-white/80 px-6 py-4">
+                      <PersonalInfoEditor
+                        personalInfo={personalInfo}
+                        onChange={setPersonalInfo}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 菜单编辑器 */}
+                  <SectionEditor
+                    sections={sections}
+                    onChange={setSections}
+                    onOptimize={handleOptimize}
+                    isOptimizing={isOptimizing || undefined}
+                  />
+                </div>
+              </div>
+
+              {/* 中间可拖拽分隔条 */}
+              <div
+                onMouseDown={handleSplitterMouseDown}
+                className="relative shrink-0 cursor-col-resize group flex flex-col items-center justify-center gap-1"
+                style={{ width: '0.875rem', height: 'calc(100vh - 7rem)' }}
+                title="拖动调整左右宽度"
+                role="separator"
+                aria-orientation="vertical"
+              >
+                {/* 整条可拖拽区域背景 */}
+                <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-2 group-hover:w-2.5 group-hover:bg-blue-100 bg-transparent transition-all rounded-full" />
+                {/* 拖拽指示器：三个竖向圆点 */}
+                <div className="relative z-10 flex flex-col items-center gap-1.5 py-1">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-400 transition-colors"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Panel: Preview - 独立滚动 */}
+              <div
+                className="overflow-y-auto pl-6"
+                style={{ width: `calc(${100 - leftWidthPct}% - 0.375rem)` }}
+              >
+                <div className="border border-blue-100 rounded-xl overflow-hidden shadow-sm">
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-blue-100">
+                    <h3 className="text-lg font-semibold text-slate-800">实时预览</h3>
+                  </div>
+                  <div className="p-6 md:p-8">
+                    {/* 可缩放预览 */}
+                    <ZoomablePreview
+                      ref={desktopPreviewRef}
+                      content={content}
+                      templateId={templateId}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 移动端 Tab 切换内容（保留原 Tab 行为） */}
+          <div className="lg:hidden">
+            <div className={`space-y-6 ${activeTab === 'edit' ? 'block' : 'hidden'}`}>
               {/* 个人信息 */}
-              <div className="card-flow rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-xl">👤</span>
+              <div className="border border-blue-100 rounded-xl overflow-hidden shadow-sm">
+                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-blue-100">
                   <h3 className="text-lg font-semibold text-slate-800">个人信息</h3>
                 </div>
-                <PersonalInfoEditor
-                  personalInfo={personalInfo}
-                  onChange={setPersonalInfo}
-                />
+                <div className="bg-white/80 px-6 py-4">
+                  <PersonalInfoEditor
+                    personalInfo={personalInfo}
+                    onChange={setPersonalInfo}
+                  />
+                </div>
               </div>
 
               {/* 菜单编辑器 */}
@@ -533,39 +653,17 @@ function EditorPage() {
               />
             </div>
 
-            {/* Right Panel: Preview */}
-            <div
-              className={`card-flow rounded-2xl p-6 md:p-8 sticky top-8 h-fit max-h-[calc(100vh-6rem)] overflow-y-auto ${
-                activeTab === 'edit' ? 'hidden lg:block' : 'block'
-              }`}
-            >
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">实时预览</h3>
-
-              {/* 预览控制面板 */}
-              <PreviewControls
-                scale={previewScale}
-                onScaleChange={setPreviewScale}
-                themeColor={themeColor}
-                onThemeColorChange={setThemeColor}
-                onPrint={handlePrint}
-              />
-
-              {/* 预览内容 */}
-              <div className="overflow-auto bg-gradient-to-br from-blue-50/60 via-white to-cyan-50/60 rounded-xl p-4 flex justify-center border border-blue-100/60">
-                <div
-                  style={{
-                    transform: `scale(${previewScale})`,
-                    transformOrigin: 'top center',
-                    transition: 'transform 0.2s ease',
-                  }}
-                >
-                  <div id="resume-preview" className="bg-white rounded-lg shadow-2xl">
-                    <ResumeRenderer
-                      content={content}
-                      templateId={templateId}
-                      themeColor={themeColor}
-                    />
-                  </div>
+            <div className={`${activeTab === 'preview' ? 'block' : 'hidden'}`}>
+              <div className="border border-blue-100 rounded-xl overflow-hidden shadow-sm">
+                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-blue-100">
+                  <h3 className="text-lg font-semibold text-slate-800">实时预览</h3>
+                </div>
+                <div className="p-6 md:p-8">
+                  <ZoomablePreview
+                    ref={mobilePreviewRef}
+                    content={content}
+                    templateId={templateId}
+                  />
                 </div>
               </div>
             </div>

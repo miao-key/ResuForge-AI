@@ -40,10 +40,10 @@ export function withAuth<P extends object>(
     // 等待水合 / 验证
     if (!mounted || !_hasHydrated || !checked) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-cyan-500 border-r-transparent"></div>
-            <p className="text-slate-400 mt-4">加载中...</p>
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-400 border-r-transparent"></div>
+            <p className="text-blue-500 mt-4">加载中...</p>
           </div>
         </div>
       );
@@ -90,10 +90,10 @@ export function withGuest<P extends object>(
 
     if (!mounted || !_hasHydrated || !checked) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-cyan-500 border-r-transparent"></div>
-            <p className="text-slate-400 mt-4">加载中...</p>
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-400 border-r-transparent"></div>
+            <p className="text-blue-500 mt-4">加载中...</p>
           </div>
         </div>
       );

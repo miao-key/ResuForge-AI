@@ -194,7 +194,7 @@ function LoginPage() {
             {/* 演示账号提示 */}
             <div className="mt-6 pt-6 border-t border-slate-200">
               <p className="text-xs text-slate-500 text-center mb-3">
-                ✨ 演示账号（点击一键填入）
+                演示账号（点击一键填入）
               </p>
               <div className="grid grid-cols-3 gap-2 text-xs">
                 <button

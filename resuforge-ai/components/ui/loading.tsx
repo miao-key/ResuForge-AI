@@ -41,19 +41,19 @@ export function LoadingSpinner({
     >
       <div
         className={cn(
-          'animate-spin rounded-full border-solid border-cyan-500 border-r-transparent',
+          'animate-spin rounded-full border-solid border-blue-400 border-r-transparent',
           sizeClasses[size]
         )}
       />
       {label && (
-        <p className={cn('text-slate-400', textSizes[size])}>{label}</p>
+        <p className={cn('text-blue-500', textSizes[size])}>{label}</p>
       )}
     </div>
   );
 
   if (fullScreen) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center">
         {spinner}
       </div>
     );

@@ -57,10 +57,19 @@ export function convertToLegacyFormat(content: ResumeContent) {
           url: fields.url || '',
         });
       } else if (section.title === '专业技能') {
+        const description = fields.description || '';
+        // 兼容旧数据：如果没有 description，则拼接 category/items/level 作为描述
+        let finalDescription = description;
+        if (!finalDescription) {
+          const legacyParts: string[] = [];
+          if (fields.category) legacyParts.push(`【${fields.category}】`);
+          if (fields.items) legacyParts.push(fields.items.split(',').map((t: string) => t.trim()).filter(Boolean).join('、'));
+          if (fields.level) legacyParts.push(`熟练程度：${fields.level}`);
+          finalDescription = legacyParts.join('，');
+        }
         result.skills.push({
           id: item.id,
-          category: fields.category || '',
-          items: fields.items ? fields.items.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+          description: finalDescription,
         });
       }
     });
@@ -144,7 +153,7 @@ export function getSectionDisplayFields(section: Section): { label: string; key:
         ];
       case '专业技能':
         return [
-          { label: '分类', key: 'category' },
+          { label: '技能描述', key: 'description' },
         ];
       default:
         return section.items[0]?.fields.slice(0, 2).map(f => ({ label: f.label, key: f.key })) || [];

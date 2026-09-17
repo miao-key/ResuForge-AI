@@ -5,10 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { DateRangeBox } from './DateRangeBox';
+import { RichTextToolbar } from './RichTextToolbar';
 import type { SectionItem, SectionField, CustomField } from '@/types';
 
 interface SectionItemEditorProps {
   sectionId: string;
+  sectionTitle?: string;
   item: SectionItem;
   isBuiltIn: boolean;
   onUpdate: (item: SectionItem) => void;
@@ -19,6 +22,7 @@ interface SectionItemEditorProps {
 
 export function SectionItemEditor({
   sectionId,
+  sectionTitle,
   item,
   isBuiltIn,
   onUpdate,
@@ -116,15 +120,39 @@ export function SectionItemEditor({
 
     // 根据类型渲染不同输入框
     if (type === 'textarea') {
+      const fieldBold = !!field.bold;
+      const fieldTextAlign = field.textAlign || 'left';
       return (
         <div key={key}>
           <Label className="text-slate-700 font-medium mb-1.5 block">{label}</Label>
+          <RichTextToolbar
+            bold={fieldBold}
+            textAlign={fieldTextAlign}
+            onToggleBold={() => {
+              if (!key) return;
+              onUpdate({
+                ...item,
+                fields: item.fields.map(f => (f.key === key ? { ...f, bold: !fieldBold } : f)),
+              });
+            }}
+            onSetAlign={(align) => {
+              if (!key) return;
+              onUpdate({
+                ...item,
+                fields: item.fields.map(f => (f.key === key ? { ...f, textAlign: align } : f)),
+              });
+            }}
+          />
           <Textarea
             value={value}
             onChange={(e) => key && updateField(key, e.target.value)}
             placeholder={placeholder}
             rows={4}
             className="bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 resize-none focus:border-blue-400"
+            style={{
+              textAlign: fieldTextAlign,
+              fontWeight: fieldBold ? 'bold' : 'normal',
+            }}
           />
           {key === 'description' && onOptimize && (
             <div className="mt-2 flex justify-end">
@@ -220,6 +248,65 @@ export function SectionItemEditor({
       {/* 固定字段 - 时间字段单独处理 */}
       <div className="space-y-3 pr-8">
         {(() => {
+          // 判定是否使用新版方框化日期选择器（仅工作经历 / 项目经历）
+          const useDateRangeBox = sectionTitle === '工作经历' || sectionTitle === '项目经历';
+
+          // 渲染日期段（开始时间 → 结束时间）
+          const renderDateRow = () => {
+            if (!item.fields.some(f => f.key === 'startDate' || f.key === 'endDate')) return null;
+
+            // 工作/项目经历 → 方框化
+            if (useDateRangeBox) {
+              const startValue = item.fields.find(f => f.key === 'startDate')?.value || '';
+              const endValue = item.fields.find(f => f.key === 'endDate')?.value || '';
+              return (
+                <DateRangeBox
+                  startValue={startValue}
+                  endValue={endValue}
+                  onStartChange={(v) => updateField('startDate', v)}
+                  onEndChange={(v) => updateField('endDate', v)}
+                />
+              );
+            }
+
+            // 其他菜单 → 老的 number Input 模式
+            return (
+              <div className="flex gap-3">
+                {item.fields.find(f => f.key === 'startDate') && (
+                  <div className="flex-1">
+                    <Label className="text-slate-700 font-medium">开始时间</Label>
+                    <Input
+                      type="number"
+                      min="1900"
+                      max="2100"
+                      step="1"
+                      value={item.fields.find(f => f.key === 'startDate')?.value || ''}
+                      onChange={(e) => updateField('startDate', e.target.value)}
+                      placeholder="例如：2020"
+                      className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
+                    />
+                  </div>
+                )}
+                <div className="flex items-center justify-center pt-5 text-slate-400">—</div>
+                {item.fields.find(f => f.key === 'endDate') && (
+                  <div className="flex-1">
+                    <Label className="text-slate-700 font-medium">结束时间</Label>
+                    <Input
+                      type="number"
+                      min="1900"
+                      max="2100"
+                      step="1"
+                      value={item.fields.find(f => f.key === 'endDate')?.value || ''}
+                      onChange={(e) => updateField('endDate', e.target.value)}
+                      placeholder="例如：2024"
+                      className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          };
+
           // 先按原始顺序找出 description 的位置
           const descIndex = item.fields.findIndex(f => f.key === 'description');
           
@@ -233,42 +320,8 @@ export function SectionItemEditor({
                 {beforeDesc.map(field => (
                   <div key={field.key}>{renderField(field)}</div>
                 ))}
-                {/* 时间字段（同行） */}
-                {item.fields.some(f => f.key === 'startDate' || f.key === 'endDate') && (
-                  <div className="flex gap-3">
-                    {item.fields.find(f => f.key === 'startDate') && (
-                      <div className="flex-1">
-                        <Label className="text-slate-700 font-medium">开始时间</Label>
-                        <Input
-                          type="number"
-                          min="1900"
-                          max="2100"
-                          step="1"
-                          value={item.fields.find(f => f.key === 'startDate')?.value || ''}
-                          onChange={(e) => updateField('startDate', e.target.value)}
-                          placeholder="例如：2020"
-                          className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
-                        />
-                      </div>
-                    )}
-                    <div className="flex items-center justify-center pt-5 text-slate-400">—</div>
-                    {item.fields.find(f => f.key === 'endDate') && (
-                      <div className="flex-1">
-                        <Label className="text-slate-700 font-medium">结束时间</Label>
-                        <Input
-                          type="number"
-                          min="1900"
-                          max="2100"
-                          step="1"
-                          value={item.fields.find(f => f.key === 'endDate')?.value || ''}
-                          onChange={(e) => updateField('endDate', e.target.value)}
-                          placeholder="例如：2024"
-                          className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
+                {/* 时间字段 */}
+                {renderDateRow()}
                 {/* description 及之后的字段 */}
                 {renderField(item.fields[descIndex])}
                 {afterDesc.map(field => (
@@ -277,7 +330,7 @@ export function SectionItemEditor({
               </>
             );
           } else {
-            // 没有 description：保持原顺序，时间字段同行
+            // 没有 description：保持原顺序
             return (
               <>
                 {item.fields
@@ -285,41 +338,7 @@ export function SectionItemEditor({
                   .map(field => (
                     <div key={field.key}>{renderField(field)}</div>
                   ))}
-                {item.fields.some(f => f.key === 'startDate' || f.key === 'endDate') && (
-                  <div className="flex gap-3">
-                    {item.fields.find(f => f.key === 'startDate') && (
-                      <div className="flex-1">
-                        <Label className="text-slate-700 font-medium">开始时间</Label>
-                        <Input
-                          type="number"
-                          min="1900"
-                          max="2100"
-                          step="1"
-                          value={item.fields.find(f => f.key === 'startDate')?.value || ''}
-                          onChange={(e) => updateField('startDate', e.target.value)}
-                          placeholder="例如：2020"
-                          className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
-                        />
-                      </div>
-                    )}
-                    <div className="flex items-center justify-center pt-5 text-slate-400">—</div>
-                    {item.fields.find(f => f.key === 'endDate') && (
-                      <div className="flex-1">
-                        <Label className="text-slate-700 font-medium">结束时间</Label>
-                        <Input
-                          type="number"
-                          min="1900"
-                          max="2100"
-                          step="1"
-                          value={item.fields.find(f => f.key === 'endDate')?.value || ''}
-                          onChange={(e) => updateField('endDate', e.target.value)}
-                          placeholder="例如：2024"
-                          className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
+                {renderDateRow()}
               </>
             );
           }
@@ -333,12 +352,38 @@ export function SectionItemEditor({
             <div key={customField.id} className="relative">
               <Label className="text-slate-600 font-medium text-sm">{customField.label}</Label>
               {customField.type === 'textarea' ? (
-                <Textarea
-                  value={customField.value}
-                  onChange={(e) => updateCustomField(customField.id, e.target.value)}
-                  rows={3}
-                  className="mt-1 bg-white/80 border-blue-100 text-slate-800 text-sm"
-                />
+                <>
+                  <RichTextToolbar
+                    bold={!!customField.bold}
+                    textAlign={customField.textAlign || 'left'}
+                    onToggleBold={() => {
+                      onUpdate({
+                        ...item,
+                        customFields: item.customFields.map(cf =>
+                          cf.id === customField.id ? { ...cf, bold: !cf.bold } : cf,
+                        ),
+                      });
+                    }}
+                    onSetAlign={(align) => {
+                      onUpdate({
+                        ...item,
+                        customFields: item.customFields.map(cf =>
+                          cf.id === customField.id ? { ...cf, textAlign: align } : cf,
+                        ),
+                      });
+                    }}
+                  />
+                  <Textarea
+                    value={customField.value}
+                    onChange={(e) => updateCustomField(customField.id, e.target.value)}
+                    rows={3}
+                    className="mt-1 bg-white/80 border-blue-100 text-slate-800 text-sm"
+                    style={{
+                      textAlign: customField.textAlign || 'left',
+                      fontWeight: customField.bold ? 'bold' : 'normal',
+                    }}
+                  />
+                </>
               ) : (
                 <Input
                   value={customField.value}

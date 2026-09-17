@@ -68,6 +68,16 @@ const optimizePrompts = {
 
 简历内容：`,
 
+  custom: `你是一位专业的简历优化顾问。请优化以下自定义菜单的描述内容，使其更专业、更有吸引力。要求：
+- 突出关键亮点和个人贡献
+- 使用 STAR 原则（情境、任务、行动、结果）
+- 量化成果（使用数字、百分比等）
+- 使用动作动词开头
+- 简洁有力，控制在 3-5 句话
+- 保留原始事实，避免编造
+
+待优化内容：`,
+
   analyze: `你是一位专业的简历分析师。请对以下简历进行全面分析，给出评分和改进建议。要求：
 - 从以下维度评分（每项 1-100 分）：
   1. 内容完整性（是否包含所有必要模块）
@@ -116,8 +126,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validTypes = ['summary', 'experience', 'project', 'education', 'skills', 'analyze'];
-    
+    const validTypes = ['summary', 'experience', 'project', 'education', 'skills', 'custom', 'analyze'];
+
     if (!validTypes.includes(type)) {
       return NextResponse.json(
         { success: false, error: '无效的优化类型' },
@@ -126,7 +136,11 @@ export async function POST(request: NextRequest) {
     }
 
     const promptTemplate = optimizePrompts[type as keyof typeof optimizePrompts];
-    const fullPrompt = promptTemplate + '\n\n' + content;
+    // 自定义菜单：把 section 标题作为上下文注入 prompt
+    const extraContext = (type === 'custom' && body?.sectionTitle)
+      ? `\n\n菜单名称：${body.sectionTitle}\n`
+      : '';
+    const fullPrompt = promptTemplate + extraContext + '\n\n' + content;
 
     // 创建流式响应
     const encoder = new TextEncoder();

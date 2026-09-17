@@ -1,14 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface SkillItemProps {
   skill: {
     id: string;
-    category: string;
-    items: string[];
+    description: string;
   };
   onChange: (skill: any) => void;
   onDelete: () => void;
@@ -26,7 +25,7 @@ export function SkillItem({
   return (
     <div className="border border-blue-100 rounded-lg p-4 space-y-3 bg-white/60 hover:bg-white/80 transition-colors">
       <div className="flex items-start justify-between">
-        <Label className="text-slate-700 font-medium">技能分类</Label>
+        <Label className="text-slate-700 font-medium">技能描述</Label>
         <div className="flex items-center gap-2">
           {onRecommend && (
             <Button
@@ -35,7 +34,7 @@ export function SkillItem({
               onClick={onRecommend}
               disabled={isRecommending}
               className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 disabled:opacity-50"
-              title="AI 推荐技能"
+              title="AI 推荐技能描述"
             >
               {isRecommending ? (
                 <span className="flex items-center gap-1">
@@ -52,36 +51,20 @@ export function SkillItem({
             variant="ghost"
             onClick={onDelete}
             className="h-6 w-6 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
-            title="删除此技能分类"
+            title="删除此技能条目"
           >
-            x
+            ×
           </Button>
         </div>
       </div>
-      <Input
-        value={skill.category}
-        onChange={(e) => onChange({ ...skill, category: e.target.value })}
-        placeholder="例如：编程语言"
-        className="bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
-      />
 
-      <div>
-        <Label className="text-slate-700 font-medium">技能列表</Label>
-        <Input
-          value={skill.items.join(', ')}
-          onChange={(e) =>
-            onChange({
-              ...skill,
-              items: e.target.value
-                .split(',')
-                .map((t) => t.trim())
-                .filter(Boolean),
-            })
-          }
-          placeholder="例如：JavaScript, TypeScript, Python（逗号分隔）"
-          className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
-        />
-      </div>
+      <Textarea
+        value={skill.description}
+        onChange={(e) => onChange({ ...skill, description: e.target.value })}
+        placeholder="例如：熟练掌握 React、TypeScript，具备 2 年大型 SaaS 前端架构经验，能够独立完成从需求评审到上线的全流程..."
+        rows={5}
+        className="bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 resize-none focus:border-blue-400"
+      />
     </div>
   );
 }

@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { Section, SectionItem, BuiltInSectionType } from '@/types';
+import type { Section, SectionItem, SectionField, CustomField, BuiltInSectionType } from '@/types';
 import { 
   BUILT_IN_SECTIONS, 
   DEFAULT_SECTIONS, 
   AVAILABLE_BUILT_IN_SECTIONS,
+  REMOVABLE_BUILT_IN_SECTIONS,
   createBuiltInSection,
   createSectionItem,
   getSectionItemLabel
@@ -36,7 +37,8 @@ export function SectionEditor({
 
   // 添加内置菜单
   const handleAddBuiltInSection = (type: BuiltInSectionType) => {
-    const newSection = createBuiltInSection(type, sections.length);
+    const deletable = REMOVABLE_BUILT_IN_SECTIONS.includes(type);
+    const newSection = createBuiltInSection(type, sections.length, deletable);
     const updatedSections = [...sections, newSection];
     onChange(updatedSections);
     setIsAddingSection(false);
@@ -46,16 +48,36 @@ export function SectionEditor({
   const [customSectionTitle, setCustomSectionTitle] = useState('');
 
   const handleAddCustomSection = () => {
-    if (!customSectionTitle.trim()) return;
-    
+    const trimmedTitle = customSectionTitle.trim();
+    if (!trimmedTitle) return;
+
+    // 自定义菜单默认带一个条目，并自带一个“{标题}描述”字段（支持 AI 优化）
+    const defaultItemId = `custom_item_${Date.now()}`;
+    const descriptionFieldKey = 'description';
+    const defaultItem = {
+      id: defaultItemId,
+      fields: [
+        {
+          key: descriptionFieldKey,
+          label: `${trimmedTitle}描述`,
+          value: '',
+          type: 'textarea' as const,
+          required: true,
+          order: 1,
+          placeholder: `详细描述${trimmedTitle}的内容、亮点与成果...`,
+        },
+      ],
+      customFields: [],
+    };
+
     const newSection: Section = {
       id: `custom_${Date.now()}`,
-      title: customSectionTitle.trim(),
+      title: trimmedTitle,
       order: sections.length,
-      items: [],
+      items: [defaultItem],
       isBuiltIn: false,
     };
-    
+
     onChange([...sections, newSection]);
     setCustomSectionTitle('');
     setIsAddingSection(false);
@@ -73,7 +95,7 @@ export function SectionEditor({
     if (!section) return;
 
     let newItem: SectionItem;
-    
+
     if (section.isBuiltIn) {
       const sectionType = AVAILABLE_BUILT_IN_SECTIONS.find(
         type => section.title === BUILT_IN_SECTIONS[type].title
@@ -84,7 +106,19 @@ export function SectionEditor({
         newItem = { id: `item_${Date.now()}`, fields: [], customFields: [] };
       }
     } else {
-      newItem = { id: `item_${Date.now()}`, fields: [], customFields: [] };
+      // 自定义菜单：参考同菜单已有条目的字段结构（继承首个条目的字段定义，但清空值并生成新 id）
+      const templateItem = section.items[0];
+      const clonedFields: SectionField[] = templateItem
+        ? templateItem.fields.map(f => ({ ...f, value: '' }))
+        : [];
+      const clonedCustomFields: CustomField[] = templateItem
+        ? templateItem.customFields.map(f => ({ ...f, id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, value: '' }))
+        : [];
+      newItem = {
+        id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        fields: clonedFields,
+        customFields: clonedCustomFields,
+      };
     }
 
     const updatedSections = sections.map(s => {
@@ -162,6 +196,11 @@ export function SectionEditor({
           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-cyan-50">
             <div className="flex items-center gap-3">
               <h3 className="font-semibold text-slate-800">{section.title}</h3>
+              {!section.isBuiltIn && (
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">
+                  自定义
+                </span>
+              )}
               <span className="text-xs text-slate-400">({section.items.length} 项)</span>
             </div>
             <div className="flex items-center gap-2">
@@ -182,8 +221,8 @@ export function SectionEditor({
               >
                 ↓
               </button>
-              {/* 删除按钮（非内置菜单可删除） */}
-              {!section.isBuiltIn && (
+              {/* 删除按钮：自定义菜单 或 用户主动添加的可删除预设菜单 */}
+              {section.deletable !== false && (
                 <button
                   onClick={() => handleDeleteSection(section.id)}
                   className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
@@ -204,6 +243,7 @@ export function SectionEditor({
               <div key={item.id} className="relative">
                 <SectionItemEditor
                   sectionId={section.id}
+                  sectionTitle={section.title}
                   item={item}
                   isBuiltIn={section.isBuiltIn}
                   onUpdate={(updatedItem) => handleUpdateItem(section.id, item.id, updatedItem)}
@@ -257,7 +297,7 @@ export function SectionEditor({
               <Input
                 value={customSectionTitle}
                 onChange={(e) => setCustomSectionTitle(e.target.value)}
-                placeholder="输入自定义菜单名称，如：实习经历、竞赛经历"
+                placeholder="输入自定义菜单名称，如：竞赛经历、项目经验"
                 className="bg-white"
               />
               <Button
