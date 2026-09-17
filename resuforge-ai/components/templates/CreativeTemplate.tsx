@@ -61,13 +61,13 @@ export default function CreativeTemplate({ content }: CreativeTemplateProps) {
       )}
 
       {/* Work Experience */}
-      {content.workExperience.length > 0 && (
+      {(content.workExperience?.length ?? 0) > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
             💼 工作经历
           </h2>
           <div className="space-y-6">
-            {content.workExperience.map((exp, index) => (
+            {content.workExperience?.map((exp, index) => (
               <div 
                 key={exp.id}
                 className="relative pl-6 pb-6 border-l-2 border-blue-200 last:border-l-0 last:pb-0"
@@ -97,13 +97,13 @@ export default function CreativeTemplate({ content }: CreativeTemplateProps) {
       )}
 
       {/* Projects */}
-      {content.projects.length > 0 && (
+      {(content.projects?.length ?? 0) > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600">
             🚀 项目经历
           </h2>
           <div className="grid gap-5">
-            {content.projects.map((proj) => (
+            {content.projects?.map((proj) => (
               <div 
                 key={proj.id}
                 className="bg-white/70 p-5 rounded-xl shadow-md border-l-4 border-pink-400 hover:shadow-lg transition-shadow"
@@ -119,9 +119,9 @@ export default function CreativeTemplate({ content }: CreativeTemplateProps) {
                   </div>
                 </div>
                 
-                {proj.technologies.length > 0 && (
+                {(proj.technologies?.length ?? 0) > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {proj.technologies.map((tech, i) => (
+                    {proj.technologies?.map((tech, i) => (
                       <span
                         key={i}
                         className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-3 py-1 rounded-full font-medium shadow-sm"
@@ -153,13 +153,13 @@ export default function CreativeTemplate({ content }: CreativeTemplateProps) {
       )}
 
       {/* Education */}
-      {content.education.length > 0 && (
+      {(content.education?.length ?? 0) > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">
             🎓 教育背景
           </h2>
           <div className="space-y-4">
-            {content.education.map((edu) => (
+            {content.education?.map((edu) => (
               <div 
                 key={edu.id}
                 className="bg-white/70 p-5 rounded-xl shadow-md flex justify-between items-start hover:shadow-lg transition-shadow"
@@ -186,13 +186,13 @@ export default function CreativeTemplate({ content }: CreativeTemplateProps) {
       )}
 
       {/* Skills */}
-      {content.skills.length > 0 && (
+      {(content.skills?.length ?? 0) > 0 && (
         <div>
           <h2 className="text-2xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600">
             ⚡ 专业技能
           </h2>
           <div className="grid gap-4">
-            {content.skills.map((skill) => (
+            {content.skills?.map((skill) => (
               <div key={skill.id} className="bg-white/70 p-4 rounded-xl shadow-md">
                 <span className="font-bold text-orange-600 text-sm block mb-2">
                   {skill.category}

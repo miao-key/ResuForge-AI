@@ -33,7 +33,7 @@ export function EducationItem({
   return (
     <div className="border border-blue-100 rounded-lg p-4 space-y-3 bg-white/60 hover:bg-white/80 transition-colors">
       <div className="flex items-start justify-between">
-        <Label className="text-slate-700 font-medium">School Name</Label>
+        <Label className="text-slate-700 font-medium">学校名称</Label>
         <div className="flex items-center gap-2">
           {onOptimize && (
             <Button
@@ -42,15 +42,15 @@ export function EducationItem({
               onClick={onOptimize}
               disabled={isOptimizing || !canOptimize}
               className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 disabled:opacity-50"
-              title="AI Optimize"
+              title="AI 优化"
             >
               {isOptimizing ? (
                 <span className="flex items-center gap-1">
                   <span className="inline-block h-3 w-3 animate-spin rounded-full border border-blue-500 border-r-transparent" />
-                  Optimizing...
+                  优化中...
                 </span>
               ) : (
-                '? AI Optimize'
+                '✨ AI 优化'
               )}
             </Button>
           )}
@@ -59,7 +59,7 @@ export function EducationItem({
             variant="ghost"
             onClick={onDelete}
             className="h-6 w-6 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
-            title="Delete this education"
+            title="删除此教育经历"
           >
             x
           </Button>
@@ -68,26 +68,26 @@ export function EducationItem({
       <Input
         value={education.school}
         onChange={(e) => onChange({ ...education, school: e.target.value })}
-        placeholder="e.g. Tsinghua University"
+        placeholder="例如：清华大学"
         className="bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
       />
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label className="text-slate-700 font-medium">Degree</Label>
+          <Label className="text-slate-700 font-medium">学历</Label>
           <Input
             value={education.degree}
             onChange={(e) => onChange({ ...education, degree: e.target.value })}
-            placeholder="e.g. Bachelor"
+            placeholder="例如：本科"
             className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
           />
         </div>
         <div>
-          <Label className="text-slate-700 font-medium">Major</Label>
+          <Label className="text-slate-700 font-medium">专业</Label>
           <Input
             value={education.major}
             onChange={(e) => onChange({ ...education, major: e.target.value })}
-            placeholder="e.g. Computer Science"
+            placeholder="例如：计算机科学"
             className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
           />
         </div>
@@ -95,7 +95,7 @@ export function EducationItem({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label className="text-slate-700 font-medium">Start Date</Label>
+          <Label className="text-slate-700 font-medium">开始时间</Label>
           <Input
             type="month"
             value={education.startDate}
@@ -104,7 +104,7 @@ export function EducationItem({
           />
         </div>
         <div>
-          <Label className="text-slate-700 font-medium">End Date</Label>
+          <Label className="text-slate-700 font-medium">结束时间</Label>
           <Input
             type="month"
             value={education.endDate}
@@ -115,11 +115,11 @@ export function EducationItem({
       </div>
 
       <div>
-        <Label className="text-slate-700 font-medium">GPA (Optional)</Label>
+        <Label className="text-slate-700 font-medium">GPA（选填）</Label>
         <Input
           value={education.gpa || ''}
           onChange={(e) => onChange({ ...education, gpa: e.target.value })}
-          placeholder="e.g. 3.8/4.0"
+          placeholder="例如：3.8/4.0"
           className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
         />
       </div>

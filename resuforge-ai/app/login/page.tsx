@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/auth';
 import { withGuest } from '@/components/auth/with-auth';
 import { FlowBackground } from '@/components/layout/flow-background';
 import { toast } from '@/components/ui/toast';
+import { resetAuthValidation } from '@/lib/auth/use-auth-check';
 import type { AuthResponse } from '@/types';
 
 const loginSchema = z.object({
@@ -49,6 +50,8 @@ function LoginPage() {
     if (response.success && response.data) {
       const authData = response.data as AuthResponse;
       setAuth(authData.user, authData.token);
+      // 重置验证缓存，确保 dashboard 会重新校验
+      resetAuthValidation();
       toast.success('登录成功！');
       window.location.href = '/dashboard';
     } else {

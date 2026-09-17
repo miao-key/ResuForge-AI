@@ -61,11 +61,11 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
           </div>
 
           {/* Skills */}
-          {content.skills.length > 0 && (
+          {(content.skills?.length ?? 0) > 0 && (
             <div className="mb-8">
               <h3 className="font-semibold text-lg mb-3 uppercase tracking-wide">专业技能</h3>
               <div className="space-y-3">
-                {content.skills.map((skill) => (
+                {content.skills?.map((skill) => (
                   <div key={skill.id}>
                     <p className="font-medium mb-1">{skill.category}</p>
                     <div className="flex flex-wrap gap-1">
@@ -85,11 +85,11 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
           )}
 
           {/* Education */}
-          {content.education.length > 0 && (
+          {(content.education?.length ?? 0) > 0 && (
             <div>
               <h3 className="font-semibold text-lg mb-3 uppercase tracking-wide">教育背景</h3>
               <div className="space-y-3 text-sm">
-                {content.education.map((edu) => (
+                {content.education?.map((edu) => (
                   <div key={edu.id}>
                     <p className="font-semibold">{edu.school}</p>
                     <p className="text-white/90">{edu.degree}</p>
@@ -125,7 +125,7 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
           )}
 
           {/* Work Experience */}
-          {content.workExperience.length > 0 && (
+          {(content.workExperience?.length ?? 0) > 0 && (
             <div className="mb-8">
               <h2 
                 className="text-2xl font-bold mb-4 pb-2 border-b-2"
@@ -134,7 +134,7 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
                 工作经历
               </h2>
               <div className="space-y-5">
-                {content.workExperience.map((exp) => (
+                {content.workExperience?.map((exp) => (
                   <div key={exp.id} className="relative pl-6">
                     <div 
                       className="absolute left-0 top-2 w-3 h-3 rounded-full"
@@ -159,7 +159,7 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
           )}
 
           {/* Projects */}
-          {content.projects.length > 0 && (
+          {(content.projects?.length ?? 0) > 0 && (
             <div className="mb-8">
               <h2 
                 className="text-2xl font-bold mb-4 pb-2 border-b-2"
@@ -168,7 +168,7 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
                 项目经历
               </h2>
               <div className="space-y-5">
-                {content.projects.map((proj) => (
+                {content.projects?.map((proj) => (
                   <div key={proj.id} className="relative pl-6">
                     <div 
                       className="absolute left-0 top-2 w-3 h-3 rounded-full"
@@ -183,9 +183,9 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
                         {proj.startDate} - {proj.endDate}
                       </p>
                     </div>
-                    {proj.technologies.length > 0 && (
+                    {(proj.technologies?.length ?? 0) > 0 && (
                       <div className="flex flex-wrap gap-1.5 my-2">
-                        {proj.technologies.map((tech, i) => (
+                        {proj.technologies?.map((tech, i) => (
                           <span
                             key={i}
                             className="text-xs px-2 py-1 rounded"

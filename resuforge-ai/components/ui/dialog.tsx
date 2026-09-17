@@ -98,7 +98,7 @@ export function Dialog({
     >
       <div
         className={cn(
-          'w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/50',
+          'w-full max-w-md rounded-xl border border-blue-200 bg-white shadow-2xl shadow-blue-500/10',
           'p-6 animate-in zoom-in-95 slide-in-from-bottom-4',
           'duration-200',
           className
@@ -108,14 +108,14 @@ export function Dialog({
         {/* 标题 */}
         <h2
           id="dialog-title"
-          className="text-lg font-semibold text-slate-50"
+          className="text-lg font-semibold text-slate-800"
         >
           {title}
         </h2>
 
         {/* 描述 */}
         {description && (
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-slate-500">
             {description}
           </p>
         )}
@@ -134,7 +134,7 @@ export function Dialog({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-slate-50 border border-slate-700 hover:border-slate-600 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 border border-slate-200 hover:border-slate-300 bg-white/80 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {cancelText}
             </button>

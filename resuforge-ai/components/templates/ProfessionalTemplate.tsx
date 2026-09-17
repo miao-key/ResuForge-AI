@@ -35,13 +35,13 @@ export const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ cont
         {/* Left Column - 1/3 width */}
         <div className="col-span-1 space-y-6">
           {/* Skills */}
-          {content.skills.length > 0 && (
+          {(content.skills?.length ?? 0) > 0 && (
             <div>
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-3 pb-1 border-b-2 border-slate-300">
                 技能专长
               </h2>
               <div className="space-y-3">
-                {content.skills.map((skill) => (
+                {content.skills?.map((skill) => (
                   <div key={skill.id}>
                     <p className="text-sm font-semibold text-slate-700 mb-1">
                       {skill.category}
@@ -61,13 +61,13 @@ export const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ cont
           )}
 
           {/* Education */}
-          {content.education.length > 0 && (
+          {(content.education?.length ?? 0) > 0 && (
             <div>
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-3 pb-1 border-b-2 border-slate-300">
                 教育背景
               </h2>
               <div className="space-y-4">
-                {content.education.map((edu) => (
+                {content.education?.map((edu) => (
                   <div key={edu.id}>
                     <p className="font-bold text-sm text-slate-800">{edu.school}</p>
                     <p className="text-xs text-slate-600 mt-0.5">{edu.degree}</p>
@@ -102,13 +102,13 @@ export const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ cont
           )}
 
           {/* Work Experience */}
-          {content.workExperience.length > 0 && (
+          {(content.workExperience?.length ?? 0) > 0 && (
             <div>
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-3 pb-1 border-b-2 border-slate-300">
                 工作经历
               </h2>
               <div className="space-y-5">
-                {content.workExperience.map((exp) => (
+                {content.workExperience?.map((exp) => (
                   <div key={exp.id}>
                     <div className="flex justify-between items-start mb-1">
                       <div>
@@ -129,13 +129,13 @@ export const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ cont
           )}
 
           {/* Projects */}
-          {content.projects.length > 0 && (
+          {(content.projects?.length ?? 0) > 0 && (
             <div>
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-3 pb-1 border-b-2 border-slate-300">
                 项目经历
               </h2>
               <div className="space-y-5">
-                {content.projects.map((proj) => (
+                {content.projects?.map((proj) => (
                   <div key={proj.id}>
                     <div className="flex justify-between items-start mb-1">
                       <div>
@@ -146,9 +146,9 @@ export const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ cont
                         {proj.startDate} - {proj.endDate}
                       </p>
                     </div>
-                    {proj.technologies.length > 0 && (
+                    {(proj.technologies?.length ?? 0) > 0 && (
                       <div className="flex flex-wrap gap-1.5 my-2">
-                        {proj.technologies.map((tech, i) => (
+                        {proj.technologies?.map((tech, i) => (
                           <span
                             key={i}
                             className="text-xs bg-slate-100 border border-slate-300 text-slate-700 px-2 py-0.5"

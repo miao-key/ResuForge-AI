@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/auth';
 import { withGuest } from '@/components/auth/with-auth';
 import { FlowBackground } from '@/components/layout/flow-background';
 import { validateEmail, validatePassword } from '@/lib/utils';
+import { resetAuthValidation } from '@/lib/auth/use-auth-check';
 import type { AuthResponse } from '@/types';
 import Link from 'next/link';
 
@@ -89,6 +90,7 @@ function RegisterPage() {
         // 注册成功，自动登录
         const authData = result.data as AuthResponse;
         setAuth(authData.user, authData.token);
+        resetAuthValidation();
         router.push('/dashboard');
       } else {
         setErrors({

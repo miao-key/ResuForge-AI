@@ -31,13 +31,13 @@ export function WorkExperienceItem({
   return (
     <div className="border border-blue-100 rounded-lg p-4 space-y-3 bg-white/60 hover:bg-white/80 transition-colors">
       <div className="flex items-start justify-between">
-        <Label className="text-slate-700 font-medium">Company</Label>
+        <Label className="text-slate-700 font-medium">公司名称</Label>
         <Button
           size="sm"
           variant="ghost"
           onClick={onDelete}
           className="h-6 w-6 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
-          title="Delete this experience"
+          title="删除此工作经历"
         >
           x
         </Button>
@@ -45,23 +45,23 @@ export function WorkExperienceItem({
       <Input
         value={experience.company}
         onChange={(e) => onChange({ ...experience, company: e.target.value })}
-        placeholder="e.g. ByteDance"
+        placeholder="例如：字节跳动"
         className="bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
       />
 
       <div>
-        <Label className="text-slate-700 font-medium">Position</Label>
+        <Label className="text-slate-700 font-medium">职位名称</Label>
         <Input
           value={experience.position}
           onChange={(e) => onChange({ ...experience, position: e.target.value })}
-          placeholder="e.g. Frontend Engineer"
+          placeholder="例如：前端工程师"
           className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label className="text-slate-700 font-medium">Start Date</Label>
+          <Label className="text-slate-700 font-medium">开始时间</Label>
           <Input
             type="month"
             value={experience.startDate}
@@ -70,7 +70,7 @@ export function WorkExperienceItem({
           />
         </div>
         <div>
-          <Label className="text-slate-700 font-medium">End Date</Label>
+          <Label className="text-slate-700 font-medium">结束时间</Label>
           <Input
             type="month"
             value={experience.endDate}
@@ -93,13 +93,13 @@ export function WorkExperienceItem({
           htmlFor={`current-${experience.id}`}
           className="text-slate-700 text-sm cursor-pointer"
         >
-          Currently Working Here
+          目前在职
         </Label>
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <Label className="text-slate-700 font-medium">Description</Label>
+          <Label className="text-slate-700 font-medium">工作描述</Label>
           <Button
             size="sm"
             variant="ghost"
@@ -107,13 +107,13 @@ export function WorkExperienceItem({
             disabled={isOptimizing || !experience.description.trim()}
             className="h-6 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 disabled:opacity-50"
           >
-            {isOptimizing ? '? Optimizing...' : '? AI Optimize'}
+            {isOptimizing ? '✨ 优化中...' : '✨ AI 优化'}
           </Button>
         </div>
         <Textarea
           value={experience.description}
           onChange={(e) => onChange({ ...experience, description: e.target.value })}
-          placeholder="Describe your responsibilities and achievements..."
+          placeholder="描述你的工作职责和成就..."
           rows={4}
           className="bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 resize-none focus:border-blue-400"
         />

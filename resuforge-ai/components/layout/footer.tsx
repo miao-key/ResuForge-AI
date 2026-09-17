@@ -2,25 +2,25 @@
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-800 bg-slate-950/95">
+    <footer className="border-t border-blue-100 bg-white/80">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-semibold text-slate-50 mb-4">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">
               ResuForge AI
             </h3>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               AI 驱动的智能简历生成平台，让求职更简单。
             </p>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-slate-50 mb-3">产品</h4>
+            <h4 className="text-sm font-semibold text-slate-700 mb-3">产品</h4>
             <ul className="space-y-2">
               <li>
                 <a
                   href="/templates"
-                  className="text-sm text-slate-400 hover:text-slate-50 transition"
+                  className="text-sm text-slate-500 hover:text-blue-600 transition"
                 >
                   模板库
                 </a>
@@ -28,7 +28,7 @@ export function Footer() {
               <li>
                 <a
                   href="/features"
-                  className="text-sm text-slate-400 hover:text-slate-50 transition"
+                  className="text-sm text-slate-500 hover:text-blue-600 transition"
                 >
                   功能特性
                 </a>
@@ -36,7 +36,7 @@ export function Footer() {
               <li>
                 <a
                   href="/pricing"
-                  className="text-sm text-slate-400 hover:text-slate-50 transition"
+                  className="text-sm text-slate-500 hover:text-blue-600 transition"
                 >
                   定价方案
                 </a>
@@ -45,12 +45,12 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-slate-50 mb-3">资源</h4>
+            <h4 className="text-sm font-semibold text-slate-700 mb-3">资源</h4>
             <ul className="space-y-2">
               <li>
                 <a
                   href="/blog"
-                  className="text-sm text-slate-400 hover:text-slate-50 transition"
+                  className="text-sm text-slate-500 hover:text-blue-600 transition"
                 >
                   博客
                 </a>
@@ -58,7 +58,7 @@ export function Footer() {
               <li>
                 <a
                   href="/help"
-                  className="text-sm text-slate-400 hover:text-slate-50 transition"
+                  className="text-sm text-slate-500 hover:text-blue-600 transition"
                 >
                   帮助中心
                 </a>
@@ -66,7 +66,7 @@ export function Footer() {
               <li>
                 <a
                   href="/api"
-                  className="text-sm text-slate-400 hover:text-slate-50 transition"
+                  className="text-sm text-slate-500 hover:text-blue-600 transition"
                 >
                   API 文档
                 </a>
@@ -75,12 +75,12 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-slate-50 mb-3">关于</h4>
+            <h4 className="text-sm font-semibold text-slate-700 mb-3">关于</h4>
             <ul className="space-y-2">
               <li>
                 <a
                   href="/about"
-                  className="text-sm text-slate-400 hover:text-slate-50 transition"
+                  className="text-sm text-slate-500 hover:text-blue-600 transition"
                 >
                   关于我们
                 </a>
@@ -88,7 +88,7 @@ export function Footer() {
               <li>
                 <a
                   href="/privacy"
-                  className="text-sm text-slate-400 hover:text-slate-50 transition"
+                  className="text-sm text-slate-500 hover:text-blue-600 transition"
                 >
                   隐私政策
                 </a>
@@ -96,7 +96,7 @@ export function Footer() {
               <li>
                 <a
                   href="/terms"
-                  className="text-sm text-slate-400 hover:text-slate-50 transition"
+                  className="text-sm text-slate-500 hover:text-blue-600 transition"
                 >
                   服务条款
                 </a>
@@ -105,8 +105,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-slate-800 text-center">
-          <p className="text-sm text-slate-500">
+        <div className="mt-8 pt-8 border-t border-blue-100 text-center">
+          <p className="text-sm text-slate-400">
             © 2026 ResuForge AI. All rights reserved.
           </p>
         </div>

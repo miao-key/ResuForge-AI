@@ -34,13 +34,13 @@ export function MinimalTemplate({ content }: MinimalTemplateProps) {
       )}
 
       {/* Work Experience */}
-      {content.workExperience.length > 0 && (
+      {(content.workExperience?.length ?? 0) > 0 && (
         <div className="mb-10">
           <h2 className="text-xs font-semibold mb-6 text-slate-400 uppercase tracking-widest">
             Experience
           </h2>
           <div className="space-y-6">
-            {content.workExperience.map((exp) => (
+            {content.workExperience?.map((exp) => (
               <div key={exp.id}>
                 <div className="flex justify-between items-baseline mb-1">
                   <h3 className="font-medium text-slate-900">{exp.position}</h3>
@@ -59,13 +59,13 @@ export function MinimalTemplate({ content }: MinimalTemplateProps) {
       )}
 
       {/* Projects */}
-      {content.projects.length > 0 && (
+      {(content.projects?.length ?? 0) > 0 && (
         <div className="mb-10">
           <h2 className="text-xs font-semibold mb-6 text-slate-400 uppercase tracking-widest">
             Projects
           </h2>
           <div className="space-y-6">
-            {content.projects.map((proj) => (
+            {content.projects?.map((proj) => (
               <div key={proj.id}>
                 <div className="flex justify-between items-baseline mb-1">
                   <h3 className="font-medium text-slate-900">{proj.name}</h3>
@@ -73,7 +73,7 @@ export function MinimalTemplate({ content }: MinimalTemplateProps) {
                     {proj.startDate} – {proj.endDate}
                   </span>
                 </div>
-                {proj.technologies.length > 0 && (
+                {(proj.technologies?.length ?? 0) > 0 && (
                   <p className="text-xs text-slate-500 font-light mb-2">
                     {proj.technologies.join(' · ')}
                   </p>
@@ -88,13 +88,13 @@ export function MinimalTemplate({ content }: MinimalTemplateProps) {
       )}
 
       {/* Education */}
-      {content.education.length > 0 && (
+      {(content.education?.length ?? 0) > 0 && (
         <div className="mb-10">
           <h2 className="text-xs font-semibold mb-6 text-slate-400 uppercase tracking-widest">
             Education
           </h2>
           <div className="space-y-4">
-            {content.education.map((edu) => (
+            {content.education?.map((edu) => (
               <div key={edu.id}>
                 <div className="flex justify-between items-baseline">
                   <h3 className="font-medium text-slate-900">{edu.school}</h3>
@@ -113,13 +113,13 @@ export function MinimalTemplate({ content }: MinimalTemplateProps) {
       )}
 
       {/* Skills */}
-      {content.skills.length > 0 && (
+      {(content.skills?.length ?? 0) > 0 && (
         <div>
           <h2 className="text-xs font-semibold mb-6 text-slate-400 uppercase tracking-widest">
             Skills
           </h2>
           <div className="space-y-1">
-            {content.skills.map((skill) => (
+            {content.skills?.map((skill) => (
               <p key={skill.id} className="text-sm font-light">
                 <span className="text-slate-900">{skill.category}</span>
                 <span className="text-slate-600"> · {skill.items.join(' · ')}</span>
