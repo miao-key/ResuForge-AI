@@ -218,6 +218,27 @@ export function SectionItemEditor({
       );
     }
 
+    if (type === 'select') {
+      const options = field.options && field.options.length > 0 ? field.options : [];
+      return (
+        <div key={key}>
+          <Label className="text-slate-700 font-medium">{label}</Label>
+          <select
+            value={value || ''}
+            onChange={(e) => key && updateField(key, e.target.value)}
+            required
+            className="mt-1.5 w-full px-3 py-2 bg-white/80 border border-blue-100 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 appearance-none"
+            style={!value ? { color: '#9ca3af' } : {}}
+          >
+            <option value="" disabled hidden>{label}</option>
+            {options.map(opt => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+      );
+    }
+
     // 默认 text 类型
     return (
       <div key={key}>
@@ -250,6 +271,50 @@ export function SectionItemEditor({
         {(() => {
           // 判定是否使用新版方框化日期选择器（仅工作经历 / 项目经历）
           const useDateRangeBox = sectionTitle === '工作经历' || sectionTitle === '项目经历';
+          // 是否为教育经历（特殊布局：学校名称 + 学历同行）
+          const isEducation = sectionTitle === '教育经历';
+
+          // 渲染学校 + 学历同行（仅教育经历）
+          const renderSchoolDegreeRow = () => {
+            if (!isEducation) return null;
+            const schoolField = item.fields.find(f => f.key === 'school');
+            const degreeField = item.fields.find(f => f.key === 'degree');
+            if (!schoolField || !degreeField) return null;
+            const schoolValue = schoolField.value || '';
+            const degreeValue = degreeField.value || '';
+            const degreeOptions = degreeField.options && degreeField.options.length > 0
+              ? degreeField.options
+              : ['初中及以下', '中专', '高中/高职', '大专', '本科', '硕士', '博士'];
+
+            return (
+              <div className="flex gap-3 items-start">
+                <div className="flex-1 min-w-0">
+                  <Label className="text-slate-700 font-medium">学校名称</Label>
+                  <Input
+                    value={schoolValue}
+                    onChange={(e) => updateField('school', e.target.value)}
+                    placeholder={schoolField.placeholder || '例如：清华大学'}
+                    className="mt-1.5 bg-white/80 border-blue-100 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
+                  />
+                </div>
+                <div className="w-36 flex-shrink-0">
+                  <Label className="text-slate-700 font-medium">学历</Label>
+                  <select
+                    value={degreeValue}
+                    onChange={(e) => updateField('degree', e.target.value)}
+                    required
+                    className="mt-1.5 w-full px-3 py-2 bg-white/80 border border-blue-100 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 appearance-none"
+                    style={!degreeValue ? { color: '#9ca3af' } : {}}
+                  >
+                    <option value="" disabled hidden>学历</option>
+                    {degreeOptions.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            );
+          };
 
           // 渲染日期段（开始时间 → 结束时间）
           const renderDateRow = () => {
@@ -309,17 +374,21 @@ export function SectionItemEditor({
 
           // 先按原始顺序找出 description 的位置
           const descIndex = item.fields.findIndex(f => f.key === 'description');
-          
+
           if (descIndex >= 0) {
             // 有 description：在它之前插入时间字段
             const beforeDesc = item.fields.slice(0, descIndex).filter(f => f.key !== 'startDate' && f.key !== 'endDate');
             const afterDesc = item.fields.slice(descIndex + 1);
             return (
               <>
-                {/* description 之前的字段 */}
-                {beforeDesc.map(field => (
-                  <div key={field.key}>{renderField(field)}</div>
-                ))}
+                {/* description 之前的字段（教育经历：学校 + 学历同行） */}
+                {isEducation ? (
+                  renderSchoolDegreeRow()
+                ) : (
+                  beforeDesc.map(field => (
+                    <div key={field.key}>{renderField(field)}</div>
+                  ))
+                )}
                 {/* 时间字段 */}
                 {renderDateRow()}
                 {/* description 及之后的字段 */}
